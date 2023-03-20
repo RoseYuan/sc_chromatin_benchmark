@@ -1,0 +1,1 @@
+# merge all Signac objects in folder xxx

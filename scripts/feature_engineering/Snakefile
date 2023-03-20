@@ -1,0 +1,101 @@
+# ------------------------------------------------------------------------------
+# R specific feature engineering rule.
+# ------------------------------------------------------------------------------
+rule feature_engineering_run_r:
+    input:
+        # adata=expand(rules.feature_engineering_prepare.output, prep="tsv.gz", allow_missing=True)
+        adata = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="file")
+    output: 
+        rds=cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.RDS",
+        mtx=cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.tsv"
+    message:
+        """
+        output: {output[0]}, {output[1]}
+        Run {wildcards.method} for feature engineering with {wildcards.distance} distance
+        feature type: {wildcards.feature_type}
+        dataset: {wildcards.scenario}
+        command: {params.cmd}
+        ndim: {wildcards.ndim}
+        scale the embedding: {cfg.SCALING}
+        """
+    params:
+        peak    = cfg.get_peak_option_for_feature_engineering,
+        archr   = cfg.get_archr_option,
+        aggregation = cfg.get_agg_option,
+        cutoff  = lambda w: cfg.get_feature_selection(key="cutoff"),
+        genome  = lambda w: cfg.get_from_scenario(w.scenario, key="genome"),
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+        # cmd     = f"conda activate {cfg.r_env}",
+        scaling = cfg.SCALING
+    benchmark:
+        str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.RDS.benchmark")
+    shell:
+        """
+        {params.cmd} scripts/feature_engineering/runMethods.R -i {input.adata} \
+            -o {output.rds} -f {output.mtx} \
+            --method {wildcards.method} \
+            --feature_type {wildcards.feature_type} \
+            --scaling {params.scaling} -c {params.cutoff} -n {wildcards.ndim} \
+            -g {params.genome} {params.peak} -d {wildcards.distance} -l {wildcards.tile_size} \
+            {params.archr} {params.aggregation}
+        """
+
+
+
+# ------------------------------------------------------------------------------
+# Python specific feature engineering rule.
+# ------------------------------------------------------------------------------
+rule feature_engineering_run_python:
+    input:
+        # adata=expand(rules.integration_prepare.output,prep="h5ad",allow_missing=True)
+        adata = lambda wildcards: cfg.get_from_scenario(wildcards.scenario,key="file")
+    output:
+        data = cfg.ROOT / "{scenario}/feature_engineering/python/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.h5ad",
+        mtx = cfg.ROOT / "{scenario}/feature_engineering/python/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.tsv"
+    message:
+        """
+        output: {output[0]}, {output[1]}
+        Run {wildcards.method} for feature engineering with {wildcards.distance} distance
+        feature type: {wildcards.feature_type}
+        dataset: {wildcards.scenario}
+        command: {params.cmd}
+        ndim: {wildcards.ndim}
+        scale the embedding: {cfg.SCALING}
+        """
+    params:
+        # peak = cfg.get_peak_option_for_feature_engineering,
+        # cutoff = lambda w: cfg.get_feature_selection(key="cutoff"),
+        genome = lambda w: cfg.get_from_scenario(w.scenario,key="genome"),
+        cmd = f"conda run --no-capture-output -n {cfg.py_env} python",
+        # cmd     = f"conda activate {cfg.r_env}",
+        scaling = cfg.SCALING
+
+    benchmark:
+        str(cfg.ROOT / "{scenario}/feature_engineering/python/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.h5ad.benchmark")
+    shell:
+        """
+        {params.cmd} scripts/feature_engineering/runMethods.py \
+          -i {input.adata} -o {output.data} -f {output.mtx} \
+	      --method {wildcards.method} \
+            --feature_type {wildcards.feature_type} \
+            --scaling {params.scaling} -n {wildcards.ndim} \
+            -g {params.genome}  -d {wildcards.distance} -l {wildcards.tile_size}
+        """ #{params.peak} -c {params.cutoff}
+
+
+int_func, r_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_R_methods())
+rule engineered_R:
+    input: expand(rules.feature_engineering_run_r.output, int_func, **r_wildcards)
+    message: "R feature engineering methods"
+
+int_func, py_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_python_methods())
+rule engineered_python:
+    input: expand(rules.feature_engineering_run_python.output, int_func, **py_wildcards)
+    message: "Python integration methods"
+
+
+rule feature_engineering:
+    input:
+        rules.engineered_python.input,
+        rules.engineered_R.input
+    message: "Feature engineering done"
