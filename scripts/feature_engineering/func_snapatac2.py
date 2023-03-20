@@ -2,13 +2,13 @@ import snapatac2 as snap
 import pandas as pd
 import os.path
 
-def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard', black_list=None):
+def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard', ndim=50, black_list=None):
     fragfile_list = fragfiles.split(",")
     dirname = os.path.dirname(output_file)
     h5ad_files = []
     # Load data
     for i, fragfile in enumerate(fragfile_list):
-        name = "CellinFile" + i
+        name = "CellinFile" + str(i)
         tmp_file = dirname + name + ".h5ad"
         data = snap.pp.import_data(
             fragfile,
@@ -34,7 +34,7 @@ def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard',
 
     # dimensional reduction
     ## compute similarity matrix
-    snap.tl.spectral(data, n_comps=100, features='selected', sample_size=1.0, distance_metric=distance,
+    snap.tl.spectral(data, n_comps=ndim, features='selected', sample_size=1.0, distance_metric=distance,
                      feature_weights='idf')
 
     df = pd.DataFrame(data.obsm['X_spectral'])

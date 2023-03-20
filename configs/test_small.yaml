@@ -2,7 +2,7 @@ ROOT: outputs
 r_env : base
 # mamba create -n sc-chrom-R4 -c conda-forge -c bioconda r-base=4* r-essentials r-rlang r-signac r-seurat=4* xgboost bioconductor-GenomeInfoDb bioconductor-EnsDb.Hsapiens.v75 bioconductor-EnsDb.Hsapiens.v86 bioconductor-EnsDb.Mmusculus.v79 r-optparse bioconductor-biovizbase leidenalg pandas
 # undo previous changes on .Renviron
-py_env : snakemake
+py_env : snapatac2
 
 
 MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
@@ -66,17 +66,28 @@ METHODS:
 #       - 5000
 
 
-  aggregation:
-    R: true
+#  aggregation:
+#    R: true
+#    feature_type:
+#     - default
+#    peak_filtering: false   # TODO: add this as the default
+#    n_meta_features: 1000
+#    n_cells: 2000
+#    norm_method: tfidf
+#    reduce: pca
+#    feature_method: archr_tile
+#    tile_size:
+#      - 500
+
+  SnapATAC2:
+    R: false
     feature_type:
      - default
+    distance:
+     - jaccard
+#     - cosine
     peak_filtering: false   # TODO: add this as the default
-    n_meta_features: 1000
-    n_cells: 2000
-    norm_method: tfidf
-    reduce: pca
-    feature_method: archr_tile
-    tile_size: 
+    tile_size:
       - 500
 
 DATA_SCENARIOS:

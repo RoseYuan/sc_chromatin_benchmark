@@ -149,7 +149,7 @@ class ParsedConfig:
             ndim = self.get_feature_selection(key = "ndim")
 
             if distance is False:
-                distance = "default"
+                distance = ["default"]
             
             if tile_size is False:
                 tile_size = [0]
@@ -170,7 +170,7 @@ class ParsedConfig:
                     ot,
                     [method],
                     self.get_all_scenarios(),
-                    [distance],
+                    distance,
                     ndim,
                     tile_size
                 )
@@ -186,7 +186,7 @@ class ParsedConfig:
                     ot,
                     [method],
                     self.get_all_scenarios(),
-                    [distance],
+                    distance,
                     ndim,
                     tile_size
                 )
