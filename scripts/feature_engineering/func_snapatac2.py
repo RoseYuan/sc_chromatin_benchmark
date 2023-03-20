@@ -1,6 +1,7 @@
 import snapatac2 as snap
 import pandas as pd
 import os.path
+import numpy as np
 
 def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard', ndim=50, black_list=None):
     fragfile_list = fragfiles.split(",")
@@ -13,14 +14,15 @@ def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard',
         data = snap.pp.import_data(
             fragfile,
             genome=snap.genome.hg38,
-            file=tmp_file,
-            sorted_by_barcode=False,
+            sorted_by_barcode=False
         )
         # Add tile matrix, select features
         snap.pp.add_tile_matrix(data, bin_size=tile_size, chunk_size=1000, n_jobs=10)
         h5ad_files.append((name, tmp_file))
+        data.write(tmp_file)
 
-    data = snap.create_dataset(h5ad_files, storage=output_file)
+    data = snap.AnnDataSet(adatas=h5ad_files, filename=output_file)
+    data.obs_names = data.obs['sample'].to_numpy() + "+" + np.array(data.obs_names)
 
     blacklist_database = {"hg19": "database/blacklist/Blacklist/lists/hg19-blacklist.v2.bed.gz",
                           "hg38": "database/blacklist/Blacklist/lists/hg38-blacklist.v2.bed.gz",
@@ -38,10 +40,7 @@ def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard',
                      feature_weights='idf')
 
     df = pd.DataFrame(data.obsm['X_spectral'])
-    df.index = data.obs['Cell']
-
-    prefix = data.obs["sample"]
-    df = df.set_index(prefix + "+" + df.index.astype(str))
+    df.index = data.obs_names
 
     data.close()
     return df
