@@ -56,7 +56,7 @@ peakCallingSignac <- function(obj, macs2_path, genome, min_width, max_width, gro
 	blacklist <- blacklist_signac[[genome]]
 
 	# call peaks for all cells using MACS2
-	peaks <- CallPeaks(obj, macs2.path = macs2_path, group.by = group_by)
+	peaks <- CallPeaks(obj, macs2.path = macs2_path, group.by = group_by, verbose = FALSE)
 	# remove peaks on nonstandard chromosomes and in genomic blacklist regions
 	peaks <- GenomeInfoDb::keepStandardChromosomes(peaks, pruning.mode = "coarse")
 	peaks <- subsetByOverlaps(x = peaks, ranges = blacklist, invert = TRUE)

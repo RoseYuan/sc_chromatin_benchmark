@@ -1,4 +1,4 @@
-ROOT: outputs
+ROOT: /home/siluo/projects/simulation/outputs
 r_env : base
 # mamba create -n sc-chrom-R4 -c conda-forge -c bioconda r-base=4* r-essentials r-rlang r-signac r-seurat=4* xgboost bioconductor-GenomeInfoDb bioconductor-EnsDb.Hsapiens.v75 bioconductor-EnsDb.Hsapiens.v86 bioconductor-EnsDb.Mmusculus.v79 r-optparse bioconductor-biovizbase leidenalg pandas
 # undo previous changes on .Renviron

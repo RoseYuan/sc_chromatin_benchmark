@@ -106,6 +106,8 @@ runArchR_tiles <- function(fragfiles, output, genome, scale, resolutions, ndim, 
 	n_iteration <- length(resolutions)
 
 	addArchRGenome(genome)
+	addArchRVerbose(verbose = FALSE)
+
 	fragfile_list <- strsplit(fragfiles, ",")
 	# create arrow file
 	ArrowFiles <- createArrowFiles(

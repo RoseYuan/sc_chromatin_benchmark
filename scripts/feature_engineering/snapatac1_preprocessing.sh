@@ -9,7 +9,9 @@ genome_sizefile=$3
 binsize=$4
 data_dir=$5
 
-file_prefix=$(basename $fragfile .tsv.gz)
+#file_prefix=$(basename $fragfile .tsv.gz)
+#file_prefix=$(basename $fragfile .bed.gz)
+file_prefix=$(basename $fragfile)
 
 suffix=".gz"
 unziped_fragfile=${fragfile%"$suffix"}

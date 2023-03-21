@@ -207,8 +207,10 @@ runSnapATAC1 <- function(fragfiles, output, genome, scale, ndim, genome_sizefile
     # load data
     fragfile_list <- unlist(strsplit(fragfiles, ","))
     snapfile_list <- lapply(fragfile_list, function(i){
-        i <- gsub("tsv.gz", "snap", i)
+        # i <- gsub("tsv.gz", "snap", i)
+        # i <- gsub("bed.gz", "snap", i)
         i <- gsub(dirname(i), output, i)
+        i <- paste0(i, ".snap")
         return(i)
     })
 
