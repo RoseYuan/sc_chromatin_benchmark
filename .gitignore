@@ -15,7 +15,9 @@ database/
 outputs/
 # snakemake
 .snakemake/
-
+# std output
+std_output*
+*.pdf
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
