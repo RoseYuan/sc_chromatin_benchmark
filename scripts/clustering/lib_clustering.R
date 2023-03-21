@@ -1,9 +1,7 @@
-# function to create a Signac object from an embedding object
+# function to add an embedding object to a Signac object, check the cell id
 
-# function to merge two Signac objects
+# function to do clustering using given parameters
 
-# function to do clustering for a list of parameters
-
-# function to visualize the named embeddings and colored by labels
+# function to calculate UMAP from a specific embeddings, visualize it and colored by labels
 
 
