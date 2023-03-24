@@ -22,27 +22,27 @@ SCALING: true
 METHODS:
 
 # R methods
-  Signac:
+ Signac:
     # distance:
     #   - Euclidean
-    R: true
-    feature_type:
-      - all_cell_peaks
-      - by_cluster_peaks
-    peak_filtering: true
+   R: true
+   feature_type:
+     - all_cell_peaks
+     - by_cluster_peaks
+   peak_filtering: true
 
 
-#  ArchR:
-#   # distance:
-#   #   - Euclidean
-#    R: true
-#    feature_type:
-#      - tiles
-#      - peaks
-#    peak_filtering: false # ArchR already filters peak by only using reproducible peaks
-#    tile_size:
-#      - 500
-#
+ ArchR:
+  # distance:
+  #   - Euclidean
+   R: true
+   feature_type:
+     - tiles
+     - peaks
+   peak_filtering: false # ArchR already filters peak by only using reproducible peaks
+   tile_size:
+     - 500
+
 #  SnapATAC1: # should have snaptools installed in the r_env
 #  # distance:
 #  #   - Euclidean
@@ -52,32 +52,32 @@ METHODS:
 #    peak_filtering: false   # TODO: add this as the default
 #    tile_size:
 #       - 5000
-#
-#
-#  aggregation:
-#    R: true
-#    feature_type:
-#     - default
-#    peak_filtering: false   # TODO: add this as the default
-#    n_meta_features: 1000
-#    n_cells: 2000
-#    norm_method: tfidf
-#    reduce: pca
-#    feature_method: signac_cluster
-##    tile_size:
-##      - 500
-#
-## Python methods
-#  SnapATAC2:
-#    R: false
-#    feature_type:
-#     - default
-#    distance:
-#     - jaccard
-#     - cosine
-#    peak_filtering: false   # TODO: add this as the default
-#    tile_size:
-#      - 500
+
+
+ aggregation:
+   R: true
+   feature_type:
+    - default
+   peak_filtering: false   # TODO: add this as the default
+   n_meta_features: 1000
+   n_cells: 2000
+   norm_method: tfidf
+   reduce: pca
+   feature_method: signac_cluster
+   tile_size:
+     - 500
+
+# Python methods
+ SnapATAC2:
+   R: false
+   feature_type:
+    - default
+   distance:
+    - jaccard
+    - cosine
+   peak_filtering: false   # TODO: add this as the default
+   tile_size:
+     - 500
 
 DATA_SCENARIOS:
   candidate1:
@@ -92,9 +92,16 @@ DATA_SCENARIOS:
      - 0.6
      - 0.8
      - 1
-     - 1.2
-     - 1.4
-     - 1.6
+    #  - 1.2
+    #  - 1.4
+    #  - 1.6
     min_width: 20
     max_width: 10000
     iter_resolution: 0.1,0.2,0.4,0.6
+    label_table_file: /home/siluo/projects/simulation/processed_data/cell_type_annotation.tsv
+    barcode_col: long_barcode
+    label_col: cell_type
+  
+  # candidate2:
+  #   resolution:
+  #    - 0.2

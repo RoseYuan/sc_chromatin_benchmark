@@ -9,7 +9,7 @@ def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard',
     h5ad_files = []
     # Load data
     for i, fragfile in enumerate(fragfile_list):
-        name = "CellinFile" + str(i)
+        name = "CellinFile" + str(i+1)
         tmp_file = dirname + name + ".h5ad"
         data = snap.pp.import_data(
             fragfile,

@@ -15,8 +15,8 @@ include: "scripts/evaluation/Snakefile"
 rule all:
     input:
         rules.feature_engineering.input,
-        # rules.metrics.output,
-        # rules.embeddings.output
+        rules.clustering.input,
+        rules.evaluation.input
 
 # ------------------------------------------------------------------------------
 # Merge benchmark files

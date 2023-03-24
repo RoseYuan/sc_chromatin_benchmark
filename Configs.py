@@ -69,6 +69,11 @@ class ParsedConfig:
             return value if isinstance(value, list) else [value]
         return value
 
+    def get_from_method_language(self, method):
+        if self.get_from_method(method, key="R"):
+            return "R"
+        else:
+            return "python"
     # def get_hvg(
     #         self,
     #         wildcards: snakemake.io.Wildcards,
@@ -116,11 +121,11 @@ class ParsedConfig:
             if self.get_from_method(method, "R")
         ]
 
-    def get_all_wildcards(self, methods=None, feature_types=False):
+    def get_all_wildcards(self, methods=None, feature_types=False): #agg_resolution=False
         """
         TODO: include method subsetting
         Collect all wildcards for wildcard-dependent rule
-        :param methods: subset of methods, default: None, using all methods defined in config
+        :param methods: subset of methods, default: None, using all methods defined in config.
         :param feature_types: feature type or list of feature types to be considered.
             If feature_types == None, feature types set to default.
             Useful if a certain metric is examined on a specific feature type.
@@ -134,7 +139,7 @@ class ParsedConfig:
         if methods is None:
             methods = self.METHODS
 
-        if feature_types is False:
+        if feature_types is False:   # if do not specify a feature type subset to enable, enable all feature types
             feature_types = ParsedConfig.FEATURE_TYPES
             # feature_types = "default"
         elif isinstance(feature_types, list):
@@ -143,59 +148,73 @@ class ParsedConfig:
                     raise ValueError(f"{feature_types} not a valid feature type")
 
         comb_func = zip
-        for method in methods:
-            distance = self.get_from_method(method, key = "distance")
-            tile_size = self.get_from_method(method, key = "tile_size")
-            ndim = self.get_feature_selection(key = "ndim")
 
-            if distance is False:
-                distance = ["default"]
+        for scenario in self.get_all_scenarios():
+            resolution = self.get_from_scenario(scenario, key = "resolution")
+
+            # if agg_resolution:  # if this is necessary? Will snakemake automatically manage it?
+            #     resolution = ["all"]
+            cp_scenario = scenario # to avoid zipping scenario in the inner loop
+            for method in methods:
+                distance = self.get_from_method(method, key = "distance")
+                tile_size = self.get_from_method(method, key = "tile_size")
+                ndim = self.get_feature_selection(key = "ndim")
+                
+                if distance is False:
+                    distance = ["default"]
+                
+                if tile_size is False:
+                    tile_size = [0]
+                
+                if resolution is False:
+                    resolution = [0.2]
+
+                def reshape_wildcards(*lists):
+                    cart_prod = itertools.product(*lists)
+                    return tuple(zip(*cart_prod))
+
+                if isinstance(feature_types, list):
+                    # feature type wildcard included
+                    ot = self.get_from_method(method, "feature_type")
+
+                    if not ot:
+                        continue  # skip if method feature type is not defined in feature_types     
+                    ot = set(feature_types).intersection(ot)
+                    ot, method, scenario, distance, ndim, tile_size, resolution = reshape_wildcards(
+                        ot,
+                        [method],
+                        [cp_scenario],
+                        distance,
+                        ndim,
+                        tile_size,
+                        resolution
+                    )
+                    wildcards["feature_type"].extend(ot)
+                    wildcards["method"].extend(method)
+                    wildcards["distance"].extend(distance)
+                    wildcards["ndim"].extend(ndim)
+                    wildcards["tile_size"].extend(tile_size)
+                
+                else:
+                    ot = self.get_from_method(method, "feature_type")
+                    ot, method, scenario, distance, ndim, tile_size, resolution = reshape_wildcards(
+                        ot,
+                        [method],
+                        [cp_scenario],
+                        distance,
+                        ndim,
+                        tile_size,
+                        resolution
+                    )
+                    wildcards["feature_type"].extend(ot)
+                    wildcards["method"].extend(method)
+                    wildcards["distance"].extend(distance)
+                    wildcards["ndim"].extend(ndim)
+                    wildcards["tile_size"].extend(tile_size)
+
             
-            if tile_size is False:
-                tile_size = [0]
-
-            def reshape_wildcards(*lists):
-                cart_prod = itertools.product(*lists)
-                return tuple(zip(*cart_prod))
-
-            if isinstance(feature_types, list):
-                # feature type wildcard included
-                ot = self.get_from_method(method, "feature_type")
-
-                if not ot:
-                    continue  # skip if method feature type is not defined in feature_types     
-                ot = set(feature_types).intersection(ot)
-
-                ot, method, scenarios, distance, ndim, tile_size = reshape_wildcards(
-                    ot,
-                    [method],
-                    self.get_all_scenarios(),
-                    distance,
-                    ndim,
-                    tile_size
-                )
-                wildcards["feature_type"].extend(ot)
-                wildcards["method"].extend(method)
-                wildcards["scenario"].extend(scenarios)
-                wildcards["distance"].extend(distance)
-                wildcards["ndim"].extend(ndim)
-                wildcards["tile_size"].extend(tile_size)
-            else:
-                ot = self.get_from_method(method, "feature_type")
-                ot, method, scenarios, distance, ndim, tile_size = reshape_wildcards(
-                    ot,
-                    [method],
-                    self.get_all_scenarios(),
-                    distance,
-                    ndim,
-                    tile_size
-                )
-                wildcards["feature_type"].extend(ot)
-                wildcards["method"].extend(method)
-                wildcards["scenario"].extend(scenarios)
-                wildcards["distance"].extend(distance)
-                wildcards["ndim"].extend(ndim)
-                wildcards["tile_size"].extend(tile_size)
+            wildcards["resolution"].extend(resolution)
+            wildcards["scenario"].extend(scenario)
 
         print(wildcards)
         return comb_func, wildcards

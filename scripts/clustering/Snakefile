@@ -1,0 +1,133 @@
+# include: "scripts/feature_engineering/Snakefile"
+
+rule prepare_clustering: # add ground truth information, add embedding, calculate the nearest neighbor graph
+    input:
+        rds = cfg.ROOT / "{scenario}/feature_engineering/R/Signac/all_cell_peaks/0/default/{ndim}.RDS",
+        embed = lambda wildcards: cfg.ROOT / "{scenario}/feature_engineering" / cfg.get_from_method_language(method=wildcards.method) / "{method}/{feature_type}/{tile_size}/{distance}/{ndim}.tsv",
+        df = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="label_table_file")
+
+    output:
+        rds = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS"
+    message:
+        """
+        input: {input[0]}, {input[1]}, {input[2]}
+        Prepare clustering by adding the ground truth information, embedding space, and calculating SNN graph.
+        dataset: {wildcards.scenario}
+        command: {params.cmd}
+        feature engineering method: {wildcards.method}, {wildcards.feature_type}, {wildcards.distance}, {wildcards.tile_size}
+        ndim: {wildcards.ndim}
+        """
+    params:
+        barcode_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="barcode_col"), 
+        label_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="label_col"),
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript"
+
+    shell:
+        """
+        {params.cmd} scripts/clustering/do_clustering.R -i {input.rds} \
+            -o {output.rds} -t {input.df} -b {params.barcode_col} -l {params.label_col} \
+            -e {input.embed} -p TRUE \
+            -n {wildcards.ndim}
+        """
+
+# rule prepare_clustering_python:
+#     input:
+#         rds = cfg.ROOT / "{scenario}/feature_engineering/R/Signac/{feature_type}/{tile_size}/{distance}/{ndim}.RDS",
+#         embed = cfg.ROOT / "{scenario}/feature_engineering/python/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.tsv",
+#         df = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="label_table_file")
+#     output:
+#         rds = cfg.ROOT /"{scenario}/clustering/python/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS"
+#     message:
+#         """
+#         input: {input[0]}, {input[1]}, {input[2]}
+#         output: {output[0]}
+#         Prepare clustering by adding the ground truth information, embedding space, and calculating SNN graph.
+#         dataset: {wildcards.scenario}
+#         command: {params.cmd}
+#         feature engineering method: {wildcards.method}, {wildcards.feature_type}, {wildcards.distance}, {wildcards.tile_size}
+#         ndim: {wildcards.ndim}
+#         """
+#     params:
+#         barcode_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="barcode_col"), 
+#         label_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="label_col"),
+#         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript"
+
+#     shell:
+#         """
+#         {params.cmd} scripts/clustering/do_clustering.R -i {input.rds} \
+#             -o {output.rds} -t {input.df} -b {params.barcode_col} -l {label_col} \
+#             -e {input.embed} -p TRUE \
+#             -n {wildcards.ndim}
+#         """
+
+int_func, wildcards_r = cfg.get_all_wildcards(methods=cfg.get_all_R_methods())
+# rule prepared_r:
+#     input: expand(rules.prepare_clustering_r.output, int_func, **wildcards_r)
+#     message: "Prepare clustering for R methods"
+
+int_func, wildcards_python = cfg.get_all_wildcards(methods=cfg.get_all_python_methods())
+# rule prepared_python:
+#     input: expand(rules.prepare_clustering_python.output, int_func, **wildcards_python)
+#     message: "Prepare clustering for python methods"
+
+# rule preparing:
+#     input:
+#         rules.prepared_r.input,
+#         rules.prepared_python.input
+#     message: "Preparing done"
+
+
+rule clustering_run:
+    input:
+        rds = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS"
+        # rds = lambda wildcards: cfg.ROOT / "{scenario}/clustering" / cfg.get_from_method(method=wildcards.method, key="R") / "{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS"
+    output: 
+        df = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}.tsv"
+    message:
+        """
+        input: {input[0]}
+        output: {output[0]}
+        Run clustering using resolution {wildcards.resolution}.
+        dataset: {wildcards.scenario}
+        command: {params.cmd}
+        feature engineering method: {wildcards.method}, {wildcards.feature_type}, {wildcards.distance}, {wildcards.tile_size}
+        ndim: {wildcards.ndim}
+        """
+    params:
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+    benchmark:
+        str(cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_clustering.benchmark")
+    shell:
+        """
+        {params.cmd} scripts/clustering/do_clustering.R -o {input.rds} \
+            -c {output.df} -p FALSE \
+            -n {wildcards.ndim} -r {wildcards.resolution}
+        """
+
+rule clustering_r:
+    input:
+        expand(rules.clustering_run.output, int_func, **wildcards_r)
+    message: "Do clustering for R methods"
+
+rule clustering_python:
+    input:
+        expand(rules.clustering_run.output, int_func, **wildcards_python)
+    message: "Do clustering for python methods"
+
+rule clustering:
+    input:
+        rules.clustering_r.input,
+        rules.clustering_python.input
+    message: "Feature engineering done"
+
+# int_func, wildcards = cfg.get_all_wildcards(methods=cfg.get_all_methods())
+# rule clustering:
+#     input:
+#         expand(rules.clustering_run.output, int_func, **wildcards)
+#     message: "Do clustering for all methods"
+
+
+# rule clustering:
+#     input:
+#         rules.clustering.input
+#     message: "Feature engineering done"

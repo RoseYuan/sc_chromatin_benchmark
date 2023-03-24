@@ -1,0 +1,40 @@
+
+
+rule evaluation_run:
+    input:
+        rds = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS",
+        df = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}.tsv"
+    output: 
+        df = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_metrics.tsv",
+        rds = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_evaluation.RDS"
+    message:
+        """
+        Evaluating clustering results.
+        dataset: {wildcards.scenario}
+        command: {params.cmd}
+        feature engineering method: {wildcards.method}, {wildcards.feature_type}, {wildcards.distance}, {wildcards.tile_size}
+        ndim: {wildcards.ndim}
+        clustering resolution: {wildcards.resolution}
+        """
+    params:
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+    benchmark:
+        str(cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_evaluation.benchmark")
+    shell:
+        """
+        {params.cmd} scripts/evaluation/do_evaluation.R -i {input.rds} \
+            -o {output.rds} -m {output.df} -c {input.df}
+        """
+
+
+
+int_func, wildcards = cfg.get_all_wildcards(methods=cfg.get_all_methods())
+rule evaluated:
+    input: expand(rules.evaluation_run.output, int_func, **wildcards)
+    message: "Do evaluation"
+
+
+rule evaluation:
+    input:
+        rules.evaluated.input,
+    message: "Evaluation done"

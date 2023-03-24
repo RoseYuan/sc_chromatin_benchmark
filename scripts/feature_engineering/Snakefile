@@ -91,7 +91,7 @@ rule engineered_R:
 int_func, py_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_python_methods())
 rule engineered_python:
     input: expand(rules.feature_engineering_run_python.output, int_func, **py_wildcards)
-    message: "Python integration methods"
+    message: "Python feature engineering methods"
 
 
 rule feature_engineering:

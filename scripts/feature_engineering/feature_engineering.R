@@ -8,7 +8,7 @@ saveRdsObject <- function(sobj, path) {
 }
 
 saveFeatureMatrix <- function(mobj, path) {
-	write.table(mobj, file = path, sep = "\t", quote = FALSE)
+	write.table(mobj, file = path, sep = "\t", quote = FALSE, col.names = FALSE)
 }
 
 runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width) {
