@@ -11,6 +11,7 @@ raw_data/
 cleaned_data/
 scripts/data_cleaning/
 database/
+database.zip
 # results
 outputs/
 # snakemake
