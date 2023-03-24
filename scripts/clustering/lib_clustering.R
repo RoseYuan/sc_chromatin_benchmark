@@ -5,7 +5,7 @@ add_labels <- function(sobj, label_table_file, barcode_col, label_col){
         require(Seurat)
     })
     cell_id <- Cells(sobj)
-    df_label <- read.table(label_table_file, header = T, sep="\t")
+    df_label <- read.table(label_table_file, header = T, sep="\t", comment.char = "")
     rownames(df_label) <- df_label[, barcode_col]
     cell_labels <- df_label[cell_id, label_col]
     Idents(sobj) <- factor(cell_labels)
@@ -21,7 +21,7 @@ add_embedding <- function(sobj, embedding_file){
     })
     cell_id <- Cells(sobj)
     
-    embed <- read.table(embedding_file, header = F, row.names = 1, sep="\t")
+    embed <- read.table(embedding_file, header = F, row.names = 1, sep="\t", comment.char = "")
     print(embed[1:2,1:2])
     rownames(embed) <- gsub("CellinFile[0-9]*\\+", "", rownames(embed))
     cell_id <- intersect(rownames(embed),cell_id)
