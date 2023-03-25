@@ -22,15 +22,13 @@ add_embedding <- function(sobj, embedding_file){
     cell_id <- Cells(sobj)
     
     embed <- read.table(embedding_file, header = F, row.names = 1, sep="\t", comment.char = "")
-    print(embed[1:2,1:2])
     rownames(embed) <- gsub("CellinFile[0-9]*\\+", "", rownames(embed))
+    rownames(embed) <- gsub("CellinFile[0-9]*\\#", "", rownames(embed))
     cell_id <- intersect(rownames(embed),cell_id)
-    print(2)
     # take only the intersection of cells
     sobj <- subset(x=sobj, cells=cell_id)
     embed <- embed[cell_id,]
     colnames(embed) <- NULL
-    print(3)
 
     sobj@reductions[["learned_embedding"]] <- CreateDimReducObject(embeddings = as.matrix(embed), key = "LSI_", assay = DefaultAssay(sobj))
     return(sobj)
