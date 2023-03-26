@@ -5,7 +5,7 @@ add_labels <- function(sobj, label_table_file, barcode_col, label_col){
         require(Seurat)
     })
     cell_id <- Cells(sobj)
-    df_label <- read.table(label_table_file, header = T, sep="\t")
+    df_label <- read.table(label_table_file, header = T, sep="\t", comment.char = "")
     rownames(df_label) <- df_label[, barcode_col]
     cell_labels <- df_label[cell_id, label_col]
     Idents(sobj) <- factor(cell_labels)
@@ -21,16 +21,24 @@ add_embedding <- function(sobj, embedding_file){
     })
     cell_id <- Cells(sobj)
     
-    embed <- read.table(embedding_file, header = F, row.names = 1, sep="\t")
-    print(embed[1:2,1:2])
+    embed <- read.table(embedding_file, header = F, row.names = 1, sep="\t", comment.char = "")
     rownames(embed) <- gsub("CellinFile[0-9]*\\+", "", rownames(embed))
-    cell_id <- intersect(rownames(embed),cell_id)
-    print(2)
+    rownames(embed) <- gsub("CellinFile[0-9]*\\#", "", rownames(embed))
+    
+    # cell_id <- intersect(rownames(embed),cell_id)
+    cell_id <- cell_id[toupper(cell_id) %in% toupper(rownames(embed))]
     # take only the intersection of cells
     sobj <- subset(x=sobj, cells=cell_id)
-    embed <- embed[cell_id,]
+    
+    g <- rep(seq_along(cell_id), sapply(cell_id, length))
+    embed_id <- g[match(toupper(cell_id), toupper(rownames(embed)))]
+    embed <- embed[embed_id,]
+    if (all(toupper(rownames(embed)) == toupper(Cells(sobj)))){
+        rownames(embed) <- Cells(sobj)
+    } else(stop("All cells in the embedding being added must match the cells in the object!"))
+
     colnames(embed) <- NULL
-    print(3)
+    print(embed[1:2,1:2])
 
     sobj@reductions[["learned_embedding"]] <- CreateDimReducObject(embeddings = as.matrix(embed), key = "LSI_", assay = DefaultAssay(sobj))
     return(sobj)

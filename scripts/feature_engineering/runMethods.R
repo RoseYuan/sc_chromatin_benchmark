@@ -204,7 +204,7 @@ if (tolower(opt$method) == "snapatac1") {
 						 ndim = opt$ndim, 
 						 binsize=opt$tile_size)
 	
-	mobj <- getFeatureMatrixSnapATAC(sobj, corCutOff= opt$cutoff, n = opt$ndim)
+	mobj <- getFeatureMatrixSnapATAC(sobj, corCutOff= opt$cutoff, n = opt$ndim) #sed -i 's/+/:/' 100.tsv
 }
 
 # When running aggregation method, the parameters for the feature method
