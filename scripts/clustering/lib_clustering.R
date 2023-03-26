@@ -38,7 +38,6 @@ add_embedding <- function(sobj, embedding_file){
     } else(stop("All cells in the embedding being added must match the cells in the object!"))
 
     colnames(embed) <- NULL
-    print(embed[1:2,1:2])
 
     sobj@reductions[["learned_embedding"]] <- CreateDimReducObject(embeddings = as.matrix(embed), key = "LSI_", assay = DefaultAssay(sobj))
     return(sobj)
