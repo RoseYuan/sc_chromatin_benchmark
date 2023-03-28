@@ -155,7 +155,14 @@ class ParsedConfig:
             # if agg_resolution:  # if this is necessary? Will snakemake automatically manage it?
             #     resolution = ["all"]
             cp_scenario = scenario # to avoid zipping scenario in the inner loop
+
+            if resolution is False:
+                resolution = [0.2]
+            cp_resolution = resolution
+
             for method in methods:
+                resolution = cp_resolution
+
                 distance = self.get_from_method(method, key = "distance")
                 tile_size = self.get_from_method(method, key = "tile_size")
                 ndim = self.get_feature_selection(key = "ndim")
@@ -165,9 +172,6 @@ class ParsedConfig:
                 
                 if tile_size is False:
                     tile_size = [0]
-                
-                if resolution is False:
-                    resolution = [0.2]
 
                 def reshape_wildcards(*lists):
                     cart_prod = itertools.product(*lists)
@@ -180,6 +184,7 @@ class ParsedConfig:
                     if not ot:
                         continue  # skip if method feature type is not defined in feature_types     
                     ot = set(feature_types).intersection(ot)
+
                     ot, method, scenario, distance, ndim, tile_size, resolution = reshape_wildcards(
                         ot,
                         [method],
@@ -189,12 +194,15 @@ class ParsedConfig:
                         tile_size,
                         resolution
                     )
+
                     wildcards["feature_type"].extend(ot)
                     wildcards["method"].extend(method)
                     wildcards["distance"].extend(distance)
                     wildcards["ndim"].extend(ndim)
                     wildcards["tile_size"].extend(tile_size)
-                
+                    wildcards["resolution"].extend(resolution)
+                    wildcards["scenario"].extend(scenario)
+
                 else:
                     ot = self.get_from_method(method, "feature_type")
                     ot, method, scenario, distance, ndim, tile_size, resolution = reshape_wildcards(
@@ -206,17 +214,16 @@ class ParsedConfig:
                         tile_size,
                         resolution
                     )
+
                     wildcards["feature_type"].extend(ot)
                     wildcards["method"].extend(method)
                     wildcards["distance"].extend(distance)
                     wildcards["ndim"].extend(ndim)
                     wildcards["tile_size"].extend(tile_size)
+                    wildcards["resolution"].extend(resolution)
+                    wildcards["scenario"].extend(scenario)
 
-            
-            wildcards["resolution"].extend(resolution)
-            wildcards["scenario"].extend(scenario)
-
-        print(wildcards)
+        # print(wildcards)
         return comb_func, wildcards
 
     # def get_integrated_for_metrics(self, rules, method):

@@ -14,8 +14,8 @@ include: "scripts/evaluation/Snakefile"
 
 rule all:
     input:
-        rules.feature_engineering.input,
-        rules.clustering.input,
+        # rules.feature_engineering.input,
+        # rules.clustering.input,
         rules.evaluation.input
 
 # ------------------------------------------------------------------------------

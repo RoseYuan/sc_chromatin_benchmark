@@ -29,12 +29,29 @@ rule evaluation_run:
 
 
 int_func, wildcards = cfg.get_all_wildcards(methods=cfg.get_all_methods())
-rule evaluated:
-    input: expand(rules.evaluation_run.output, int_func, **wildcards)
-    message: "Do evaluation"
-
+# rule evaluated:
+#     input: expand(rules.evaluation_run.output, int_func, **wildcards)
+#     message: "Do evaluation"
+# print(cfg.get_all_methods())
+# print(wildcards)
+rule get_metric_file_table:
+    input: 
+        file = expand(rules.evaluation_run.output.df, int_func, **wildcards),
+        root = cfg.ROOT
+    output: 
+        cfg.ROOT / "metric_file.tsv"
+    run:
+        import pandas as pd 
+        file_list1 = input.file
+        file_list2 = [i.removeprefix(input.root+"/") for i in file_list1]
+        df = pd.DataFrame(file_list2)
+        df = df.rename(columns={0: "file"})
+        df[['scenario', 'workflow','method','feature_type','tile_size','distance','ndim','filename']] = df['file'].str.split("/",  expand=True)
+        df["resolution"] = df["filename"].str.removeprefix("r").str.removesuffix("_metrics.tsv")
+        df.to_csv(output[0], sep='\t', header=True, index=False)
 
 rule evaluation:
     input:
-        rules.evaluated.input,
+        # rules.evaluated.input.file,
+        rules.get_metric_file_table.output
     message: "Evaluation done"

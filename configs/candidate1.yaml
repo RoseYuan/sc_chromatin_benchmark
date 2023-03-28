@@ -32,16 +32,16 @@ METHODS:
    peak_filtering: true
 
 
-#  ArchR:
-#   # distance:
-#   #   - Euclidean
-#    R: true
-#    feature_type:
-#      - tiles
-#      - peaks
-#    peak_filtering: false # ArchR already filters peak by only using reproducible peaks
-#    tile_size:
-#      - 500
+ ArchR:
+  # distance:
+  #   - Euclidean
+   R: true
+   feature_type:
+     - tiles
+     - peaks
+   peak_filtering: false # ArchR already filters peak by only using reproducible peaks
+   tile_size:
+     - 500
 
  SnapATAC1: # should have snaptools installed in the r_env
  # distance:
@@ -54,18 +54,18 @@ METHODS:
       - 5000
 
 
-#  aggregation:
-#    R: true
-#    feature_type:
-#     - default
-#    peak_filtering: false   # TODO: add this as the default
-#    n_meta_features: 1000
-#    n_cells: 2000
-#    norm_method: tfidf
-#    reduce: pca
-#    feature_method: signac_cluster
-#    tile_size:
-#      - 500
+ aggregation:
+   R: true
+   feature_type:
+    - default
+   peak_filtering: false   # TODO: add this as the default
+   n_meta_features: 1000
+   n_cells: 2000
+   norm_method: tfidf
+   reduce: pca
+   feature_method: signac_cluster
+   tile_size:
+     - 500
 
 # Python methods
  SnapATAC2:
