@@ -103,3 +103,89 @@ createSignacObj <- function(frags, peaks, genome, assay_type) {
 
 	return(sobj)
 }
+
+
+runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width) {
+	# create fragment objects
+	require(Signac)
+	require(Seurat)
+	# fragfile_list <- strsplit(fragfiles, ",")
+	fragfile_list <- unlist(strsplit(fragfiles, ","))
+	frag_list <- lapply(fragfile_list, function(i){Signac::CreateFragmentObject(path = i)})
+	# call peaks
+	peak_list <- lapply(frag_list,
+						function(i){peakCallingSignac(i, macs2_path, genome, min_width, max_width, group_by = NULL)})
+
+	combined.peaks <- GenomicRanges::reduce(x = unlist(GenomicRanges::GRangesList(peak_list)))
+	sobj_list <- lapply(frag_list,
+						function(i){createSignacObj(i, combined.peaks, genome, assay_type = "all_cell_peaks")})
+
+	    if (length(sobj_list) == 1){
+		sobj <- sobj_list[[1]]
+	}else{
+		sobj <- merge(
+				  x = sobj_list[[1]],
+				  y = sobj_list[2:length(sobj_list)],
+				  add.cell.ids = paste0("CellinFile",seq(1,length(sobj_list)))
+				)
+	}
+
+	sobj <- FindTopFeatures(sobj,
+                             min.cutoff = "q5",
+                             assay = "all_cell_peaks")
+	sobj <- RunTFIDF(sobj,
+						  assay = "all_cell_peaks",
+						  method = 1)  # computes log(TF×IDF)
+	sobj <- RunSVD(sobj,
+						n = 100,
+						assay = "all_cell_peaks",
+						reduction.key = "LSI_",
+						reduction.name = "lsi_all_cell_peaks",
+						scale.embeddings = scale)
+	return(sobj)
+}
+
+runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width){
+	sobj <- runSignac_AllCellPeaks(fragfiles, macs2_path, genome, scale, min_width, max_width)
+	ndim <- 50 # use ndim=50 for clustering
+	components <- DepthCorComponentsSignac(sobj, corCutOff = 0.75,
+									assay_type="all_cell_peaks", n=ndim,
+									reduction="lsi_all_cell_peaks")
+	# Do clustering
+	sobj <- FindNeighbors(object = sobj,
+							 reduction = "lsi_all_cell_peaks",
+							 dims = components,
+							 graph.name = c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)))
+
+	library(reticulate)
+	use_python("/home/siluo/Software/mambaforge/bin/python")
+	# use_python("/home/siluo/softwares/mambaforge-pypy3/envs/sc-chrom-R4/bin/python") # temporary
+
+	sobj <- FindClusters(object = sobj,
+							verbose = FALSE,
+							algorithm = 4,
+							graph.name = paste0("snn_ndim", ndim))
+	sobj[["first_round_clusters"]] <- sobj$seurat_clusters
+
+	# peak calling
+	peaks <- peakCallingSignac(sobj, macs2_path, genome, min_width, max_width, group_by = "first_round_clusters")
+	# get fragment objects
+	frags <- Signac::Fragments(sobj)
+	sobj <- createSignacObj(frags, peaks, genome, assay_type = "by_cluster_peaks")
+
+	sobj <- FindTopFeatures(sobj,
+                             min.cutoff = "q5",
+                             assay = "by_cluster_peaks")
+	sobj <- RunTFIDF(sobj,
+					 method = 1,
+					 assay = "by_cluster_peaks")
+	sobj <- RunSVD(sobj,
+					n = 100,
+					assay = "by_cluster_peaks",
+					reduction.key = "LSI_",
+					reduction.name = "lsi_by_cluster_peaks",
+					scale.embeddings = scale)
+
+	return(sobj)
+}
+

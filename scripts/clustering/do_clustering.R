@@ -27,7 +27,8 @@ option_list <- list(
     # parameters for clustering
 	make_option(c("-r", "--resolution"), type="double", default=0.2, help="Resolution for clustering"),
     make_option(c("-a", "--algorithm"), type="double", default=4, help="Clustering algorithm"),
-    make_option(c("-c", "--clustering_output"), type="character", default=NA, help="output file path for clustering result")
+    make_option(c("-c", "--clustering_output"), type="character", default=NA, help="output file path for clustering result"),
+    make_option(c("s", "--use_seurat", type="logical", default=FALSE, help="if use Seurat::Findclusters() to do clustering or not. If not ,use igraph::cluster::leiden()"))
 )
 # -h should be preserved for --help!!!
 
@@ -65,13 +66,24 @@ if (opt$prepare) {
     saveRDS(sobj, opt$output)
 } else {
     sobj <- readRDS(opt$output)
-    sobj <- FindClusters(object = sobj, 
+    if (opt$use_seurat) {
+        sobj <- FindClusters(object = sobj, 
                         verbose = FALSE, 
                         algorithm = opt$algorithm,
                         resolution = opt$resolution,
                         graph.name = paste0("snn_ndim", opt$ndim)
                     )
-    df_label <- data.frame(sobj$seurat_clusters)
+        df_label <- data.frame(sobj$seurat_clusters)
+    } else {
+        sce <- as.SingleCellExperiment(snare)
+        graph <- scran::buildSNNGraph(x = sce, use.dimred = "learned_embedding")
+        cluster_leiden <- factor(igraph::cluster_leiden(graph, 
+                                                        objective_function = "CPM", 
+                                                        resolution_parameter = opt$resolution, 
+                                                        n_iterations =3)$membership)
+        df_label <- data.frame(cluster_leiden)
+    }
+
     colnames(df_label) <- "clusterings"
     df_label$barcode <- rownames(df_label)
     rownames(df_label) <- NULL
