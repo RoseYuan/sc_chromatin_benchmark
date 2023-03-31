@@ -35,7 +35,7 @@ option_list <- list(
 	make_option(c("-l", "--tile_size"), type="double", default=NA, help="Tile/bin size for ArchR/SnapATAC1,2 method"),
 	make_option(c("-r", "--resolutions"), type="character", default="0.2,0.6,0.8", help="Resolution list for iterativeLSI in ArchR method"),
 	# parameters for peak calling
-	make_option(c("-p", "--macs2_path"), type="character", default=NA, help="path to macs2"),
+	make_option(c("-z", "--macs2_path"), type="character", default=NA, help="path to macs2"), # TODO change the character 
 	make_option(c("-a", "--min_width"), type="double", default=0, help="minimal peak width"),
 	make_option(c("-b", "--max_width"), type="double", default=Inf, help="maximal peak width"),
 	# parameters for preprocessing
@@ -54,6 +54,7 @@ option_list <- list(
 	make_option(c("-g", "--genome"), type="character", default=NA, help="genome version")
 )
 # -h should be preserved for --help!!!
+# -p reserved for number of processes
 
 methods <- c("signac", "archr", "aggregation", "snapatac1", "snapatac2")
 feature_methods <- c("signac_all", "signac_cluster", "archr_tile", "archr_peak", "snapatac1", "snapatac2")

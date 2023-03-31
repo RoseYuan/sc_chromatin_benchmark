@@ -71,7 +71,8 @@ runArchR_tiles <- function(fragfiles, output, genome, scale, resolutions, ndim, 
 	    clusterParams = list( #See Seurat::FindClusters
 		resolution = resolutions, #c(0.1, 0.2, 0.4, 0.6, 0.8, 1.0)
 		sampleCells = nsample,
-		n.start = 10
+		n.start = 10,
+		algorithm = 3
 		),
 	    varFeatures = 25000,
 	    dimsToUse = 1:ndim,

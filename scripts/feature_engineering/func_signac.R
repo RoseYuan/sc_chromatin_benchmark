@@ -54,7 +54,7 @@ peakCallingSignac <- function(obj, macs2_path, genome, min_width, max_width, gro
 							 "ce10" = blacklist_ce10,
 							 "ce11" = blacklist_ce11)
 	blacklist <- blacklist_signac[[genome]]
-
+	head(blacklist)
 	# call peaks for all cells using MACS2
 	peaks <- CallPeaks(obj, macs2.path = macs2_path, group.by = group_by, verbose = FALSE)
 	# remove peaks on nonstandard chromosomes and in genomic blacklist regions
@@ -76,16 +76,21 @@ createSignacObj <- function(frags, peaks, genome, assay_type) {
 	require(EnsDb.Mmusculus.v79)
 
 	# get gene annotations
-	# annotation_list <- list("hg19" = EnsDb.Hsapiens.v75,
-	# 					 "hg38" = EnsDb.Hsapiens.v86,
-	# 					 "mm10" = EnsDb.Mmusculus.v79)
-	# annotation <- GetGRangesFromEnsDb(ensdb = annotation_list[[genome]])
-	# seqlevelsStyle(annotation) <- "UCSC"
+	annotation_list <- list("hg19" = EnsDb.Hsapiens.v75,
+						 "hg38" = EnsDb.Hsapiens.v86,
+						 "mm10" = EnsDb.Mmusculus.v79)
 
-	annotation_list <- list("hg19" = "UCSC_annotation_hg19.rds",
+	res <- try(annotation <- GetGRangesFromEnsDb(ensdb = annotation_list[[genome]]))
+	if (class(res) != "try-error"){
+		res <- try(seqlevelsStyle(annotation) <- "UCSC")
+	}
+	if (class(res) == "try-error") {
+		cat("Caught an error during generating UCSC annotation. Use a previously generated one.\n")
+		annotation_list <- list("hg19" = "UCSC_annotation_hg19.rds",
 						"hg38" = "UCSC_annotation_hg38.rds",
 						"mm10" = "UCSC_annotation_mm10.rds")
-	annotation <- readRDS(paste0("database/annotation/", annotation_list[[genome]]))  # Temporary
+		annotation <- readRDS(paste0("database/annotation/", annotation_list[[genome]]))  # Temporary
+	}
 	
 	# Quantify peaks
 	counts <- FeatureMatrix(
@@ -152,21 +157,32 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 									assay_type="all_cell_peaks", n=ndim,
 									reduction="lsi_all_cell_peaks")
 	# Do clustering
-	sobj <- FindNeighbors(object = sobj,
-							 reduction = "lsi_all_cell_peaks",
-							 dims = components,
-							 graph.name = c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)))
+	# sobj <- FindNeighbors(object = sobj,
+	# 						 reduction = "lsi_all_cell_peaks",
+	# 						 dims = components,
+	# 						 graph.name = c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)))
 
-	library(reticulate)
-	use_python("/home/siluo/Software/mambaforge/bin/python")
+	# library(reticulate)
+	# use_python("/home/siluo/Software/mambaforge/bin/python")
 	# use_python("/home/siluo/softwares/mambaforge-pypy3/envs/sc-chrom-R4/bin/python") # temporary
-
-	sobj <- FindClusters(object = sobj,
-							verbose = FALSE,
-							algorithm = 4,
-							graph.name = paste0("snn_ndim", ndim))
-	sobj[["first_round_clusters"]] <- sobj$seurat_clusters
-
+    # use_python("/home/siluo/softwares/mambaforge-pypy3/bin/python")
+	
+	# sobj <- FindClusters(object = sobj,
+	# 						verbose = FALSE,
+	# 						algorithm = 4,
+	# 						graph.name = paste0("snn_ndim", ndim))
+	
+	sce <- as.SingleCellExperiment(sobj)
+	# saveRDS(sce, "debug_sce.RDS")
+	# saveRDS(sobj, "debug_sobj.RDS")
+    graph <- scran::buildSNNGraph(x = sce, use.dimred = "LSI_ALL_CELL_PEAKS")
+    cluster_leiden <- factor(igraph::cluster_leiden(graph, 
+													objective_function = "CPM", 
+													resolution_parameter = 0.8, 
+													n_iterations =3)$membership)
+	print(0)
+	sobj[["first_round_clusters"]] <- cluster_leiden
+	saveRDS(sobj, "debug_sobj.RDS")
 	# peak calling
 	peaks <- peakCallingSignac(sobj, macs2_path, genome, min_width, max_width, group_by = "first_round_clusters")
 	# get fragment objects

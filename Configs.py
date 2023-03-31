@@ -223,7 +223,7 @@ class ParsedConfig:
                     wildcards["resolution"].extend(resolution)
                     wildcards["scenario"].extend(scenario)
 
-        # print(wildcards)
+        print(wildcards)
         return comb_func, wildcards
 
     # def get_integrated_for_metrics(self, rules, method):
@@ -240,8 +240,8 @@ class ParsedConfig:
         if self.get_from_method(wildcards.method, "peak_filtering"):
             min_width = self.get_from_scenario(wildcards.scenario, key="min_width")
             max_width = self.get_from_scenario(wildcards.scenario, key="max_width")
-            return f"-p {macs2_path} -a {min_width} -b {max_width}"
-        return f"-p {macs2_path}"
+            return f"-z {macs2_path} -a {min_width} -b {max_width}"
+        return f"-z {macs2_path}"
 
 
     def get_archr_option(self, wildcards):

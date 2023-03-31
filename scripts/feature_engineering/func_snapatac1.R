@@ -126,6 +126,7 @@ preprocessingSnapATAC1 <- function(fragfiles, genome, genome_sizefile, binsize, 
 }
 
 loadSnapFile <- function(snapfile_list, sample.names){
+    require(SnapATAC)
     snap.files <- unlist(snapfile_list)
     x.sp.ls <- lapply(seq(snap.files), function(i){
         createSnap(

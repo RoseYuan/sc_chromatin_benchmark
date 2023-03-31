@@ -26,7 +26,7 @@ rule prepare_clustering: # add ground truth information, add embedding, calculat
         """
         {params.cmd} scripts/clustering/do_clustering.R -i {input.rds} \
             -o {output.rds} -t {input.df} -b {params.barcode_col} -l {params.label_col} \
-            -e {input.embed} -p TRUE \
+            -e {input.embed} -z TRUE \
             -n {wildcards.ndim}
         """
 
@@ -56,7 +56,7 @@ rule prepare_clustering: # add ground truth information, add embedding, calculat
 #         """
 #         {params.cmd} scripts/clustering/do_clustering.R -i {input.rds} \
 #             -o {output.rds} -t {input.df} -b {params.barcode_col} -l {label_col} \
-#             -e {input.embed} -p TRUE \
+#             -e {input.embed} -z TRUE \
 #             -n {wildcards.ndim}
 #         """
 
@@ -100,7 +100,7 @@ rule clustering_run:
     shell:
         """
         {params.cmd} scripts/clustering/do_clustering.R -o {input.rds} \
-            -c {output.df} -p FALSE \
+            -c {output.df} -z FALSE \
             -n {wildcards.ndim} -r {wildcards.resolution}
         """
 

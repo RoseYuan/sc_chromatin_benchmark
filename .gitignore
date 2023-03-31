@@ -13,9 +13,11 @@ scripts/data_cleaning/
 database/
 database.zip
 # results
+results/
 outputs/
 # snakemake
 .snakemake/
+test.R
 # std output
 std_output*
 *.pdf
