@@ -44,7 +44,7 @@ peakCallingSignac <- function(obj, macs2_path, genome, min_width, max_width, gro
 	require(Seurat)
 	require(GenomeInfoDb)
 	require(GenomicRanges)
-
+	
 	# get blacklist name and annotation
 	blacklist_signac <- list("hg19" = blacklist_hg19,
 							 "hg38" = blacklist_hg38_unified,
@@ -54,7 +54,6 @@ peakCallingSignac <- function(obj, macs2_path, genome, min_width, max_width, gro
 							 "ce10" = blacklist_ce10,
 							 "ce11" = blacklist_ce11)
 	blacklist <- blacklist_signac[[genome]]
-	head(blacklist)
 	# call peaks for all cells using MACS2
 	peaks <- CallPeaks(obj, macs2.path = macs2_path, group.by = group_by, verbose = FALSE)
 	# remove peaks on nonstandard chromosomes and in genomic blacklist regions
@@ -162,6 +161,13 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 	# 						 dims = components,
 	# 						 graph.name = c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)))
 
+	sobj <- PrepareGraph(sobj, reduction="lsi_all_cell_peaks",
+						components=components, 
+						graph.name.ls=c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)), 
+						igraph.name=paste0("igraph_snn_ndim", ndim))
+	# graph <- scran::buildSNNGraph(x = sce, use.dimred = "LSI_ALL_CELL_PEAKS", k=20,
+	# 							  type = "jaccard")
+
 	# library(reticulate)
 	# use_python("/home/siluo/Software/mambaforge/bin/python")
 	# use_python("/home/siluo/softwares/mambaforge-pypy3/envs/sc-chrom-R4/bin/python") # temporary
@@ -171,18 +177,18 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 	# 						verbose = FALSE,
 	# 						algorithm = 4,
 	# 						graph.name = paste0("snn_ndim", ndim))
-	
-	sce <- as.SingleCellExperiment(sobj)
+	# sce <- as.SingleCellExperiment(sobj)
 	# saveRDS(sce, "debug_sce.RDS")
 	# saveRDS(sobj, "debug_sobj.RDS")
-    graph <- scran::buildSNNGraph(x = sce, use.dimred = "LSI_ALL_CELL_PEAKS")
+
+	graph <- sobj@misc[[paste0("igraph_snn_ndim", ndim)]]
     cluster_leiden <- factor(igraph::cluster_leiden(graph, 
-													objective_function = "CPM", 
-													resolution_parameter = 0.8, 
-													n_iterations =3)$membership)
-	print(0)
+													objective_function = "modularity",
+                                        			resolution_parameter = 0.8, 
+                                        			n_iterations =10)$membership)
+
 	sobj[["first_round_clusters"]] <- cluster_leiden
-	saveRDS(sobj, "debug_sobj.RDS")
+
 	# peak calling
 	peaks <- peakCallingSignac(sobj, macs2_path, genome, min_width, max_width, group_by = "first_round_clusters")
 	# get fragment objects
@@ -205,3 +211,22 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 	return(sobj)
 }
 
+#' Create igraph-compatible graph and save in Seurat object
+#'
+#' adapted from https://github.com/joshpeters/westerlund/blob/master/R/functions.R
+PrepareGraph <- function(sobj, reduction, graph.name.ls, igraph.name, components=NULL) {
+	components <- SetIfNull(components, 1:ncol(sobj@reductions[[reduction]]))
+	stopifnot(ncol(sobj@reductions[[reduction]]) >= max(components))
+	sobj <- Seurat::FindNeighbors(object = sobj, 
+									dims = components,
+									reduction = reduction, 
+									graph.name = graph.name.ls)
+
+	g <- sobj@graphs[[graph.name.ls[2]]]
+	attributes(g)[[1]] <- NULL
+	attributes(g)$class <- "dgCMatrix"
+	#adj_matrix <- Matrix::Matrix(as.matrix(object@graphs[[graph.name]]), sparse = TRUE)
+	g <- igraph::graph_from_adjacency_matrix(adjmatrix = g, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
+	sobj@misc[[igraph.name]] <- g
+	return(sobj)
+}

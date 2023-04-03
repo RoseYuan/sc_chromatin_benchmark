@@ -37,4 +37,4 @@ if __name__ == "__main__":
                              distance=distance,
                              ndim=ndim)
 
-        mobj.to_csv(matrix_file, sep='\t')
+        mobj.to_csv(matrix_file, sep='\t',header=False)

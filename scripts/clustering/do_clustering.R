@@ -2,6 +2,7 @@
 # outputs: a Signac object with clustering results
 
 source("scripts/clustering/lib_clustering.R")
+source("scripts/feature_engineering/func_signac.R")
 
 suppressPackageStartupMessages({
 library(optparse)
@@ -20,7 +21,7 @@ option_list <- list(
     make_option(c("-b", "--barcode_col"), type="character", default=NA, help="in label_table_file, column name of cell barcode."),
     make_option(c("-l", "--label_col"), type="character", default=NA, help="in label_table_file, column name of cell label."),
     make_option(c("-e", "--embedding_file"), type="character", default=NA, help="input file path for embedding matrix."),
-    make_option(c("-z", "--prepare"), type="logical", default=TRUE, help="if only preparation steps will be performed or not."),
+    make_option(c("-z", "--prepare"), action="store_true", default=FALSE, help="if only preparation steps will be performed or not."),
     # parameters for SNN
     make_option(c("-n", "--ndim"), type="double", default=100, help="number of dimensions for the embedding"),
     
@@ -28,7 +29,7 @@ option_list <- list(
 	make_option(c("-r", "--resolution"), type="double", default=0.2, help="Resolution for clustering"),
     make_option(c("-a", "--algorithm"), type="double", default=4, help="Clustering algorithm"),
     make_option(c("-c", "--clustering_output"), type="character", default=NA, help="output file path for clustering result"),
-    make_option(c("-s", "--use_seurat", type="logical", default=FALSE, help="if use Seurat::Findclusters() to do clustering or not. If not ,use igraph::cluster::leiden()"))
+    make_option(c("-s", "--use_seurat"), action="store_true", default=FALSE, help="if use Seurat::Findclusters() to do clustering or not. If not ,use igraph::cluster::leiden()")
 )
 # -h should be preserved for --help!!!
 
@@ -75,17 +76,26 @@ if (opt$prepare) {
                     )
         df_label <- data.frame(sobj$seurat_clusters)
     } else {
-        sce <- as.SingleCellExperiment(snare)
-        graph <- scran::buildSNNGraph(x = sce, use.dimred = "learned_embedding")
+        # sce <- as.SingleCellExperiment(snare)
+        # graph <- scran::buildSNNGraph(x = sce, use.dimred = "learned_embedding")
+        # cluster_leiden <- factor(igraph::cluster_leiden(graph, 
+        #                                                 objective_function = "CPM", 
+        #                                                 resolution_parameter = opt$resolution, 
+        #                                                 n_iterations =3)$membership)
+        sobj <- PrepareGraph(sobj, reduction="learned_embedding",
+						graph.name.ls=c(paste0("nn_ndim", opt$ndim), paste0("snn_ndim", opt$ndim)), 
+						igraph.name=paste0("igraph_snn_ndim", opt$ndim))
+        graph <- sobj@misc[[paste0("igraph_snn_ndim", opt$ndim)]]
         cluster_leiden <- factor(igraph::cluster_leiden(graph, 
-                                                        objective_function = "CPM", 
-                                                        resolution_parameter = opt$resolution, 
-                                                        n_iterations =3)$membership)
+													objective_function = "modularity",
+                                        			resolution_parameter = opt$resolution, 
+                                        			n_iterations =10)$membership)
+
         df_label <- data.frame(cluster_leiden)
     }
 
     colnames(df_label) <- "clusterings"
-    df_label$barcode <- rownames(df_label)
+    df_label$barcode <- Cells(sobj)
     rownames(df_label) <- NULL
     write.table(df_label, file = opt$clustering_output, sep = "\t", quote = FALSE)
 }

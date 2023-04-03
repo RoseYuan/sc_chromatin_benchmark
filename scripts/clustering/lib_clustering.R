@@ -22,9 +22,11 @@ add_embedding <- function(sobj, embedding_file){
     cell_id <- Cells(sobj)
     
     embed <- read.table(embedding_file, header = F, row.names = 1, sep="\t", comment.char = "")
+
+    
     rownames(embed) <- gsub("CellinFile[0-9]*\\+", "", rownames(embed))
     rownames(embed) <- gsub("CellinFile[0-9]*\\#", "", rownames(embed))
-    
+
     # cell_id <- intersect(rownames(embed),cell_id)
     cell_id <- cell_id[toupper(cell_id) %in% toupper(rownames(embed))]
     # take only the intersection of cells
