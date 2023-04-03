@@ -7,18 +7,49 @@ scripts/._.DS_Store
 
 ### Project ###
 # data files
-raw_data/
+raw_data/**
+!raw_data/notes.txt
 cleaned_data/
+## ignore intermediate results of data cleaning, but keep the code
 !scripts/data_cleaning/
 scripts/data_cleaning/**
 !scripts/data_cleaning/*.ipynb #Except for data cleaning scripts
 !scripts/data_cleaning/*.R
 !scripts/data_cleaning/*.py
+!scripts/data_cleaning/*.Rmd
+
 scripts/data_cleaning/Chen_2019/**
 !scripts/data_cleaning/Chen_2019/
 !scripts/data_cleaning/Chen_2019/*.ipynb
 !scripts/data_cleaning/Chen_2019/*.R
 !scripts/data_cleaning/Chen_2019/*.py
+!scripts/data_cleaning/Chen_2019/*.Rmd
+!scripts/data_cleaning/Chen_2019/Cells_Chen_2019.txt
+
+scripts/data_cleaning/Cell_line_mix/**
+!scripts/data_cleaning/Cell_line_mix/
+!scripts/data_cleaning/Cell_line_mix/*ipynb
+!scripts/data_cleaning/Cell_line_mix/*.R
+!scripts/data_cleaning/Cell_line_mix/*.py
+!scripts/data_cleaning/Cell_line_mix/*.Rmd
+!scripts/data_cleaning/Cell_line_mix/Cell_id_keep_ArchR.txt
+
+scripts/data_cleaning/PBMC_multiomics/**
+!scripts/data_cleaning/PBMC_multiomics/
+!scripts/data_cleaning/PBMC_multiomics/*.ipynb
+!scripts/data_cleaning/PBMC_multiomics/*.R
+!scripts/data_cleaning/PBMC_multiomics/*.py
+!scripts/data_cleaning/PBMC_multiomics/*.Rmd
+!scripts/data_cleaning/PBMC_multiomics/Cell_id_keep_ArchR.txt
+
+scripts/data_cleaning/Ma_2019/**
+!scripts/data_cleaning/Ma_2019/
+!scripts/data_cleaning/Ma_2019/*.ipynb
+!scripts/data_cleaning/Ma_2019/*.R
+!scripts/data_cleaning/Ma_2019/*.py
+!scripts/data_cleaning/Ma_2019/*.Rmd
+!scripts/data_cleaning/Ma_2019/Cells_Ma_2019.txt
+
 database/
 database.zip
 # results
