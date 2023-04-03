@@ -9,12 +9,23 @@ scripts/._.DS_Store
 # data files
 raw_data/
 cleaned_data/
-scripts/data_cleaning/
+!scripts/data_cleaning/
+scripts/data_cleaning/**
+!scripts/data_cleaning/*.ipynb #Except for data cleaning scripts
+!scripts/data_cleaning/*.R
+!scripts/data_cleaning/*.py
+scripts/data_cleaning/Chen_2019/**
+!scripts/data_cleaning/Chen_2019/
+!scripts/data_cleaning/Chen_2019/*.ipynb
+!scripts/data_cleaning/Chen_2019/*.R
+!scripts/data_cleaning/Chen_2019/*.py
 database/
 database.zip
 # results
+*.RDS
 results/
 outputs/
+output*.txt
 # snakemake
 .snakemake/
 test.R
