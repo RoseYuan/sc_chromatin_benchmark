@@ -1,0 +1,3 @@
+[submodule "scripts/feature_engineering/scFeatAgg"]
+	path = scripts/feature_engineering/scFeatAgg
+	url = https://github.com/plger/scFeatAgg.git

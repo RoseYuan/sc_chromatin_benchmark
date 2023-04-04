@@ -94,7 +94,7 @@ runArchR_peaks <- function(fragfiles, output, genome, macs2_path, scale, resolut
     method = "Seurat",
     name = paste0("Clusters_ndim",ndim),
     resolution = tail(resolutions,n=1),
-    algorithm = 4,
+    algorithm = 3,
     dimsToUse = 1:ndim,
     force = TRUE
     )
@@ -130,7 +130,7 @@ runArchR_peaks <- function(fragfiles, output, genome, macs2_path, scale, resolut
 	resolution = resolutions,
 	sampleCells = nsample,
 	n.start = 10,
-	algorithm = 4
+	algorithm = 3
 	),
 	varFeatures = 25000,
 	dimsToUse = 1:ndim,
