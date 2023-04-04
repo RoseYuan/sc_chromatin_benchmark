@@ -54,6 +54,7 @@ scripts/data_cleaning/Ma_2019/**
 !scripts/data_cleaning/Ma_2019/*.Rmd
 !scripts/data_cleaning/Ma_2019/Cells_Ma_2019.txt
 !scripts/data_cleaning/Ma_2019/*.sh
+!scripts/data_cleaning/Ma_2019/Ma_2019_RNA_annotation.txt
 
 database/
 database.zip
