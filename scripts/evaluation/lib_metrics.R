@@ -17,21 +17,91 @@ library(MESS)
 
 
 compare_clusterings_external <- function(true, pred, metric="ARI") {
-    suppressPackageStartupMessages({
-        library(aricode)
-        library(clevr)
-    })
     # check if the cell id matches
-    if (length(true) != length(pred)){
+    if (length(true) != length(pred)) {
         stop("Error! The two partitionings should have the same length!")
-    }else if (toupper(metric)=="ARI"){
-        return(ARI(true, pred))
-    }else if (toupper(metric)=="AMI"){
-        return(AMI(true, pred))
-    }else if (toupper(metric)=="HOMOGENEITY"){
-        return(homogeneity(true, pred))
+    }
+    # unnormalized
+    if (tolower(metric) == "mi") { # mutual information
+        return(infotheo::mutinformation(true, pred))
+    }
+    if (tolower(metric) == "vi") { # variation of information
+        return(clevr::variation_info(true, pred))
+    }
+    if (tolower(metric) == "purity") { # variation of information
+        return(funtimes::purity(true, pred))
+    }
+    if (tolower(metric) == "vdm|mirkin") { # vdm: Van Dongen Measure; mirkin: Mirkin Metric
+        return(mclustcomp::mclustcomp(true, pred, types = tolower(metric))$scores)
+    }
+    # normalized/adjusted
+    if (tolower(metric) == "ari") { # adjusted rand index
+        return(aricode::ARI(true, pred))
+    }
+    if (tolower(metric) == "ami") { # adjusted mutual information
+        return(aricode::AMI(true, pred))
+    }
+    if (tolower(metric) == "homogeneity") {
+        return(clevr::homogeneity(true, pred))
     }
 }
+
+
+adjusted_wallance_indices <-function(true=NULL, pred=NULL, contigency_res=NULL){  # cannot be calculated when there's singletons
+    
+    ## get pairs using C
+    ## ensure that values of c1 and c2 are between 0 and n1
+    if (is.null(contigency_res)){
+      res <- aricode::sortPairs(true, pred)
+      n <- length(true)
+    } else{
+      res <- contigency_res
+      n <- sum(res$ni.)
+    }
+    spairs <- n*(n-1)/2 # N
+    stot <- sum(choose(res$nij, 2), na.rm=TRUE) # T
+    srow <- sum(choose(res$ni., 2), na.rm=TRUE) # P
+    scol <- sum(choose(res$n.j, 2), na.rm=TRUE) # Q
+    a <- stot
+    b <- srow-stot
+    c <- scol-stot
+    d <- spairs+stot-srow-scol
+    aw <- (a*d-b*c)/((a+b)*(b+d))
+    av <- (a*d-b*c)/((a+c)*(c+d))
+    ari <- 2*(a*d-b*c)/((a+b)*(b+d)+(a+c)*(c+d))
+    
+    awi <- list()
+    avj <- list()
+    for (i in sort(unique(res$pair_c1))){
+      idx <- which(res$pair_c1 == i)
+      term1 <- spairs * sum(choose(res$nij[idx], 2)) 
+      term2 <- choose(sum(res$nij[idx]), 2) * scol
+      term3 <- choose(sum(res$nij[idx]), 2) * (spairs - scol)
+      awi[i+1] <- (term1 - term2) / term3
+    }
+
+    for (j in sort(unique(res$pair_c2))){
+      idx <- which(res$pair_c2 == j)
+      term1 <- spairs * sum(choose(res$nij[idx], 2)) 
+      term2 <- choose(sum(res$nij[idx]), 2) * srow
+      term3 <- choose(sum(res$nij[idx]), 2) * (spairs - srow)
+      avj[j+1] <- (term1 - term2) / term3
+    }
+    
+    aw2 <- mean(unlist(awi))
+    av2 <- mean(unlist(avj))
+    ari2 <- 2*aw2*av2/(aw2+av2)
+    return(list("AW"=aw, "AV"=av, "ARI"=ari, "AW2"=aw2, "AV2"=av2, "ARI2"=ari2,"Awi"=awi, "Avj" = avj))
+}
+
+normalize_freq <- function(clusterings){
+  sample <- as.data.frame(table(clusterings))
+  Ntot <- sum(sample$Freq)
+  sample$norm_freq <- sample$Freq/Ntot
+  return(sample)
+}
+
+
 #' Compute the average k nearest neighbor overlap.
 #' 
 #' @param nn_id1 A N x k integer matrix of the near neighbour indices.
@@ -138,7 +208,7 @@ lisi_result <- function(x, meta_data, label_colname, perplexity = 30, nn_eps = 0
 evaluation <- function(sobj, true_labels, clustering, embedding_name="learned_embedding", dist_metric="Euclidean", metrics1=NULL, metrics2=NULL){
     embed <- Embeddings(Reductions(sobj,embedding_name))
     if (is.null(metrics1)){
-        metrics1 <- c("ARI","AMI","Homogeneity")
+        metrics1 <- c("ARI","AMI","MI","VI")
     }
     if (is.null(metrics2)){
         metrics2 <- c("Silhouette", "Silhouette_label", "cLISI", "cLISI_label")
@@ -185,6 +255,15 @@ evaluation <- function(sobj, true_labels, clustering, embedding_name="learned_em
                     nn_eps = 0, 
                     main=title)
     df_metric[metric, "value"] <- re4$avg
+
+    # decomposed ARI
+    res <- adjusted_wallance_indices(true_labels, clustering)
+    df_metric["AW", "value"] <- res$AW
+    df_metric["AV", "value"] <- res$AV
+    df_metric["AW2", "value"] <- res$AW2
+    df_metric["AV2", "value"] <- res$AV2
+    df_metric["ARI2", "value"] <- res$ARI2
+
     print(df_metric)
-    return(list(metrics=df_metric, sil1=re1, sil2=re2, lisi1=re3, lisi2=re4))
+    return(list(metrics=df_metric, sil1=re1, sil2=re2, lisi1=re3, lisi2=re4, awav=res))
 }
