@@ -47,7 +47,7 @@ if (opt$prepare) {
     sobj <- readRDS(opt$input)
     sobj <- add_labels(sobj, opt$label_table_file, opt$barcode_col, opt$label_col)
     sobj <- add_embedding(sobj, opt$embedding_file)
-    saveRDS(sobj, "/home/siluo/projects/simulation/outputs/debug.rds")
+
     graph_name <- paste0("snn_ndim", opt$ndim)
     if (is.null(sobj@graphs[[graph_name]])) {
         name1 <- paste0("nn_ndim", opt$ndim)

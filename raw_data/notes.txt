@@ -32,3 +32,11 @@ wget https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4156nnn/GSM4156597/suppl/GSM415
 wget https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4156nnn/GSM4156597/suppl/GSM4156597_skin.late.anagen.peaks.bed.gz
 wget https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4156nnn/GSM4156597/suppl/GSM4156597_skin_celltype.txt.gz
 wget https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4156nnn/GSM4156608/suppl/GSM4156608_skin.late.anagen.rna.counts.txt.gz
+
+# Buenrostro_2018
+# the bam files are downloaded from this tutorial: https://reg-gen.readthedocs.io/en/latest/hint/tutorial-single-cell.html
+wget https://costalab.ukaachen.de/open_data/scOpen/HematopoieticCells/HematopoieticCells.tar.gz --no-check-certificate
+
+# the completed bam files are downloaded from here: https://www.dropbox.com/sh/8o8f0xu6cvr46sm/AAB6FMIDvHqnG6h7athgcm5-a/Buenrostro_2018.tar.gz?dl=0
+# the link is from https://github.com/pinellolab/scATAC-benchmarking/tree/master/Real_Data/Buenrostro_2018/input/sc-bams_nodup and https://www.biorxiv.org/content/10.1101/739011v1.full
+# the meta file is from https://github.com/pinellolab/scATAC-benchmarking/blob/master/Real_Data/Buenrostro_2018/input/metadata.tsv

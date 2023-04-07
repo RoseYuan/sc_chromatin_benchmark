@@ -63,6 +63,7 @@ database.zip
 results/
 outputs/
 output*.txt
+std_output/
 # snakemake
 .snakemake/
 test.R

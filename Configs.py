@@ -223,7 +223,7 @@ class ParsedConfig:
                     wildcards["resolution"].extend(resolution)
                     wildcards["scenario"].extend(scenario)
 
-        print(wildcards)
+        # print(wildcards)
         return comb_func, wildcards
 
     # def get_integrated_for_metrics(self, rules, method):

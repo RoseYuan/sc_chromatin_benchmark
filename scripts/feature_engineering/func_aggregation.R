@@ -36,18 +36,26 @@ norm_method='tfidf', reduce="pca", ...){
         norm_function <- Signac::RunTFIDF
     }
     else{stop("Please specify correct normalization method!")}
-
-    agg_feature_matrix <- aggregate_features(feature_matrix, dims, n_meta_features, n_cells, norm_function, reduce)
-
+    if(is.element(tolower(feature_method), c("signac_all", "signac_cluster"))){
+        sce <- as.SingleCellExperiment(sobj)
+        res <- aggregate_features(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce)
+        agg_feature_matrix <- res$Fmat
+        sobj[[DefaultAssay(sobj)]][["feature_groups"]]<- res$Fgrp
+    } else {
+        agg_feature_matrix <- aggregate_features(feature_matrix, dims, n_meta_features, n_cells, norm_function, reduce)
+        }
+    
     return(list(sobj=sobj, Fmat=agg_feature_matrix))
 }
 
-aggregate_features <- function(feature_matrix, dims, n_meta_features, n_cells, norm_function, reduce){
+aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce=NULL){
     require(SingleCellExperiment)
     # feature_matrix: a cell-by-feature matrix
     # first normalize feature_matrix using norm_function, then run PCA (reduce cell dim), then cluster features, 
     # then log-normalize the meta-features, and (optionaly) lastly do dimensional reduction on meta-feature matrix
-    agg_counts <- scDblFinder:::aggregateFeatures(
+    if (is.null(feature_matrix) & is.null(sce)){stop("Please specify the feature matrix or sce object as input!")}
+    if (is.null(sce)){
+        agg_counts <- scDblFinder:::aggregateFeatures(
         t(feature_matrix),
         dims.use = dims,
         k = n_meta_features,
@@ -55,6 +63,19 @@ aggregate_features <- function(feature_matrix, dims, n_meta_features, n_cells, n
         use.subset = n_cells,
         norm.fn=norm_function, 
         twoPass=TRUE)
+    } else {
+        sce_x <- scDblFinder:::aggregateFeatures(
+        sce,
+        dims.use = dims,
+        k = n_meta_features,
+        num_init = 3,
+        use.subset = n_cells,
+        norm.fn=norm_function, 
+        twoPass=TRUE)
+
+        agg_counts <- counts(sce_x)
+        feature_groups <- metadata(sce_x)$featureGroups
+    }
 
     # create sce object
     sce <- SingleCellExperiment(list(counts=agg_counts))
@@ -62,13 +83,19 @@ aggregate_features <- function(feature_matrix, dims, n_meta_features, n_cells, n
     sce <- scuttle::logNormCounts(sce)
 
     if (reduce == "original") {
-        return(t(as.matrix(logcounts(sce))))
+        Fmat <- t(as.matrix(logcounts(sce)))
     }else if (reduce == "pca") {
         pca <- scater::runPCA(t(logcounts(sce)), center=TRUE, scale=TRUE, rank=100)
-        return(as.matrix(pca$x))
+        Fmat <- as.matrix(pca$x)
     }else if (reduce == 'lsi') {
         tf.idf <- RunTFIDF(object=t(as.matrix(logcounts(sce))), method=1)
         agg_lsi <- RunSVD(t(tf.idf), n = 100,nscale.embeddings = TRUE)
-        return(agg_lsi)
+        Fmat <- agg_lsi
     }else{stop("Please specify correct dimensional reduction method!")}
+
+    if (is.null(sce)){
+        return(Fmat)
+        } else {
+            return(list(Fmat=Fmat, Fgrp=feature_groups))
+            }
 }

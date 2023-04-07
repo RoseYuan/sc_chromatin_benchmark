@@ -150,7 +150,9 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_wid
 }
 
 runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width){
+	print(0)
 	sobj <- runSignac_AllCellPeaks(fragfiles, macs2_path, genome, scale, min_width, max_width)
+	print(1)
 	ndim <- 50 # use ndim=50 for clustering
 	components <- DepthCorComponentsSignac(sobj, corCutOff = 0.75,
 									assay_type="all_cell_peaks", n=ndim,
@@ -188,7 +190,7 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
                                         			n_iterations =10)$membership)
 
 	sobj[["first_round_clusters"]] <- cluster_leiden
-
+	saveRDS(sobj, "debug_sobj.RDS")
 	# peak calling
 	peaks <- peakCallingSignac(sobj, macs2_path, genome, min_width, max_width, group_by = "first_round_clusters")
 	# get fragment objects
@@ -223,7 +225,9 @@ PrepareGraph <- function(sobj, reduction, graph.name.ls, igraph.name, components
 									graph.name = graph.name.ls)
 
 	g <- sobj@graphs[[graph.name.ls[2]]]
-	attributes(g)[[1]] <- NULL
+	if(class(g)!="dgCMatrix"){
+		attributes(g)[[1]] <- NULL
+	}
 	attributes(g)$class <- "dgCMatrix"
 	#adj_matrix <- Matrix::Matrix(as.matrix(object@graphs[[graph.name]]), sparse = TRUE)
 	g <- igraph::graph_from_adjacency_matrix(adjmatrix = g, mode = "undirected", weighted = TRUE, add.colnames = TRUE)

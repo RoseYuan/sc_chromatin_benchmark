@@ -22,7 +22,7 @@ output_snapfile=${data_dir}/${file_prefix}.snap
 
 # decompress
 if [ ! -f "$unziped_fragfile" ]; then 
-    gunzip -k $fragfile; 
+    gunzip -k $fragfile || gunzip $fragfile; 
 fi
 
 
@@ -36,7 +36,7 @@ fi
 
 # compress the bed file 
 if [ ! -f "$sorted_file.gz" ]; then 
-    gzip -k $sorted_file; 
+    gzip -k $sorted_file || gzip $sorted_file; 
 fi
 
 if [ ! -f "$output_snapfile" ]; then 
