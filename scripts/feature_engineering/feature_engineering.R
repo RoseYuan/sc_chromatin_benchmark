@@ -1,7 +1,7 @@
 # source("scripts/feature_engineering/func_signac.R")
-source("scripts/feature_engineering/func_archr.R")
-source("scripts/feature_engineering/func_snapatac1.R")
-source("scripts/feature_engineering/func_aggregation.R")
+source("../feature_engineering/func_archr.R", chdir=TRUE)
+source("../feature_engineering/func_snapatac1.R", chdir=TRUE)
+source("../feature_engineering/func_aggregation.R", chdir=TRUE)
 
 saveRdsObject <- function(sobj, path) {
 	saveRDS(sobj, file = path)

@@ -1,4 +1,4 @@
-source("scripts/feature_engineering/func_signac.R")
+source("../feature_engineering/func_signac.R", chdir=TRUE)
 
 snapRbind_new <- function (obj1, obj2) 
 {

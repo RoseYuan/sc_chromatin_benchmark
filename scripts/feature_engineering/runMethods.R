@@ -8,7 +8,7 @@
 # }
 
 # script_dir <- getScriptPath()
-source("scripts/feature_engineering/feature_engineering.R")
+source("../feature_engineering/feature_engineering.R", chdir=TRUE)
 
 suppressPackageStartupMessages({
 library(optparse)

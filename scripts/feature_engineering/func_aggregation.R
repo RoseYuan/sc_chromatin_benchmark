@@ -1,4 +1,4 @@
-source("scripts/feature_engineering/func_signac.R")
+source("../feature_engineering/func_signac.R", chdir=TRUE)
 
 # aggregate features
 # two-pass mode: useful for large datasets, first do feature clustering on a subset of cells,
