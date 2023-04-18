@@ -1,0 +1,5 @@
+# check the number of clusters:
+awk '{print $2}' clustering/aggregation/default/500/default/15/r0.4.tsv | sort -rn | head -n 2
+
+cut -f 1 file.tsv | sort | uniq
+

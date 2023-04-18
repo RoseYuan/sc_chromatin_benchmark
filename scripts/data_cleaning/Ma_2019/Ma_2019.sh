@@ -22,13 +22,13 @@ bed_file_gz="${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.be
 bed_file="${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.bed
 cell_ids_file="/home/siluo/public/SiyuanLuo/projects/benchmark/scripts/data_cleaning/Ma_2019/Cells_Ma_2019.txt"
 
-# gzip -dk $bed_file_gz
-# echo $bed_file
-# echo $cell_ids_file
-# extract_rows_by_barcodes $bed_file $cell_ids_file > "${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.bed
+gzip -dk $bed_file_gz
+echo $bed_file
+echo $cell_ids_file
+extract_rows_by_barcodes $bed_file $cell_ids_file > "${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.bed
 
-# # sort according to coordinate
-# sort -k1,1 -k2,2n -k3,3n "${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.bed > "${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.sorted.bed
+# sort according to coordinate
+sort -k1,1 -k2,2n -k3,3n "${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.bed > "${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.sorted.bed
 # add count column (as 10X fragment file looks like)
 awk 'BEGIN{FS=OFS="\t"} {print $0, 1}' "${output_dir}"/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.sorted.bed > "${output_dir}/GSM4156597_skin.late.anagen.atac.fragments.sorted.filtered.sorted.1.bed"
 # bgzip

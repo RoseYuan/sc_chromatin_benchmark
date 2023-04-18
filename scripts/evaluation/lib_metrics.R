@@ -88,8 +88,9 @@ adjusted_wallance_indices <-function(true=NULL, pred=NULL, contigency_res=NULL){
       avj[j+1] <- (term1 - term2) / term3
     }
     
-    aw2 <- mean(unlist(awi))
-    av2 <- mean(unlist(avj))
+    # remove NA introduced by singletons
+    aw2 <- mean(unlist(awi[!is.na(awi)]))
+    av2 <- mean(unlist(avj[!is.na(avj)]))
     ari2 <- 2*aw2*av2/(aw2+av2)
     return(list("AW"=aw, "AV"=av, "ARI"=ari, "AW2"=aw2, "AV2"=av2, "ARI2"=ari2,"Awi"=awi, "Avj" = avj))
 }
@@ -266,4 +267,38 @@ evaluation <- function(sobj, true_labels, clustering, embedding_name="learned_em
 
     print(df_metric)
     return(list(metrics=df_metric, sil1=re1, sil2=re2, lisi1=re3, lisi2=re4, awav=res))
+}
+
+
+normalize_freq <- function(clusterings){
+  sample <- as.data.frame(table(clusterings))
+  Ntot <- sum(sample$Freq)
+  sample$norm_freq <- sample$Freq/Ntot
+  return(sample)
+}
+
+
+Hill_diversity <- function(clusterings, q){
+  inf_threshold <- 100
+  if (q == 0){
+    Diversity <- length(unique(clusterings))
+  }else{
+    sample <- normalize_freq(clusterings)
+    pi <- sample$norm_freq  # relative  abundance  of  species
+    pi <- pi[pi > 0]
+    if (q == 1) {  # exponential of Shanon entropy
+      Diversity <- exp(sum(-pi * log(pi)))
+    } else if (q >= inf_threshold) {
+      Diversity <- 1 / max(pi)
+    } else {
+      Diversity <- sum(pi^q)^(1 / (1 - q))
+    }
+  }
+  return(Diversity)
+}
+
+
+eveness <- function(clusterings, a=1, b=0){
+  Eveness = Hill_diversity(clusterings, a) / Hill_diversity(clusterings, b)
+  return(Eveness)
 }
