@@ -1,5 +1,5 @@
 # for a given signac object and a clustering result df file, calculate the value of the evaluation metrics
-source("../evaluation/lib_metrics.R", chdir=TRUE)
+source("scripts/evaluation/lib_metrics.R", chdir=TRUE)
 
 suppressPackageStartupMessages({
 library(optparse)

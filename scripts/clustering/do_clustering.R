@@ -1,8 +1,8 @@
 # input: name of the dataset, embedding file name, clustering parameters
 # outputs: a Signac object with clustering results
 
-source("../clustering/lib_clustering.R", chdir=TRUE)
-source("../feature_engineering/func_signac.R", chdir=TRUE)
+source("scripts/clustering/lib_clustering.R", chdir=TRUE)
+source("scripts/feature_engineering/func_signac.R", chdir=TRUE)
 
 suppressPackageStartupMessages({
 library(optparse)

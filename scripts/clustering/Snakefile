@@ -101,7 +101,7 @@ rule clustering_run:
         """
         {params.cmd} scripts/clustering/do_clustering.R -o {input.rds} \
             -c {output.df}  \
-            -n {wildcards.ndim} -r {wildcards.resolution}
+            -n {wildcards.ndim} -r {wildcards.resolution} --use_seurat
         """
 
 rule clustering_r:
