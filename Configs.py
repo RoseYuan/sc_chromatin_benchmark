@@ -19,6 +19,7 @@ class ParsedConfig:
         self.r_env = config["r_env"]
         self.py_env = config["py_env"]
         self.MACS2_PATH = config["MACS2_PATH"]
+        self.reticulate_py = config["reticulate_py"]
 
 
     def get_all_feature_selections(self):

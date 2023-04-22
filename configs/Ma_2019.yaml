@@ -4,7 +4,7 @@ r_env : base
 # mamba create -n sc-chrom-R4 -c conda-forge -c bioconda r-base=4* r-essentials r-rlang r-signac r-seurat=4* xgboost bioconductor-GenomeInfoDb bioconductor-EnsDb.Hsapiens.v75 bioconductor-EnsDb.Hsapiens.v86 bioconductor-EnsDb.Mmusculus.v79 r-optparse bioconductor-biovizbase leidenalg pandas
 # undo previous changes on .Renviron
 py_env : snapatac2
-
+reticulate_py: /home/siluo/softwares/mambaforge-pypy3/envs/r-reticulate/bin/python
 
 # MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
 MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2

@@ -1,7 +1,7 @@
 ROOT: /home/siluo/public/SiyuanLuo/projects/benchmark/outputs/PBMC_multiomics # Edit it
 r_env : base
 py_env : snapatac2
-
+reticulate_py: /home/siluo/softwares/mambaforge-pypy3/envs/r-reticulate/bin/python
 
 MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
 # MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2

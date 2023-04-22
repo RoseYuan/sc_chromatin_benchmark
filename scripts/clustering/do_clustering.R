@@ -29,7 +29,8 @@ option_list <- list(
 	make_option(c("-r", "--resolution"), type="double", default=0.2, help="Resolution for clustering"),
     make_option(c("-a", "--algorithm"), type="double", default=4, help="Clustering algorithm"),
     make_option(c("-c", "--clustering_output"), type="character", default=NA, help="output file path for clustering result"),
-    make_option(c("-s", "--use_seurat"), action="store_true", default=FALSE, help="if use Seurat::Findclusters() to do clustering or not. If not ,use igraph::cluster::leiden()")
+    make_option(c("-s", "--use_seurat"), action="store_true", default=FALSE, help="if use Seurat::Findclusters() to do clustering or not. If not ,use igraph::cluster::leiden()"),
+    make_option(c("-p", "--python"), type="character", default=NA, help="python path for r-reticulate."),
 )
 # -h should be preserved for --help!!!
 
@@ -68,6 +69,10 @@ if (opt$prepare) {
 } else {
     sobj <- readRDS(opt$output)
     if (opt$use_seurat) {
+        if (!is.na(opt$python)) {
+            library(reticulate)
+            use_python(opt$python)
+        }
         sobj <- FindClusters(object = sobj, 
                         verbose = FALSE, 
                         algorithm = opt$algorithm,

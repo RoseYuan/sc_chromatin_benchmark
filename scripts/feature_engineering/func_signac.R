@@ -150,47 +150,53 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_wid
 }
 
 runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width){
-	print(0)
 	sobj <- runSignac_AllCellPeaks(fragfiles, macs2_path, genome, scale, min_width, max_width)
-	print(1)
-	ndim <- 50 # use ndim=50 for clustering
+	ndim <- 30 # use ndim=30 for clustering
 	components <- DepthCorComponentsSignac(sobj, corCutOff = 0.75,
 									assay_type="all_cell_peaks", n=ndim,
 									reduction="lsi_all_cell_peaks")
 	# Do clustering
-	# sobj <- FindNeighbors(object = sobj,
-	# 						 reduction = "lsi_all_cell_peaks",
-	# 						 dims = components,
-	# 						 graph.name = c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)))
 
-	sobj <- PrepareGraph(sobj, reduction="lsi_all_cell_peaks",
-						components=components, 
-						graph.name.ls=c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)), 
-						igraph.name=paste0("igraph_snn_ndim", ndim))
-	# graph <- scran::buildSNNGraph(x = sce, use.dimred = "LSI_ALL_CELL_PEAKS", k=20,
-	# 							  type = "jaccard")
-
+	##################################
 	# library(reticulate)
 	# use_python("/home/siluo/Software/mambaforge/bin/python")
 	# use_python("/home/siluo/softwares/mambaforge-pypy3/envs/sc-chrom-R4/bin/python") # temporary
     # use_python("/home/siluo/softwares/mambaforge-pypy3/bin/python")
+	sobj <- FindNeighbors(object = sobj,
+							 reduction = "lsi_all_cell_peaks",
+							 dims = components,
+							 graph.name = c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)))
 	
-	# sobj <- FindClusters(object = sobj,
-	# 						verbose = FALSE,
-	# 						algorithm = 4,
-	# 						graph.name = paste0("snn_ndim", ndim))
+	sobj <- FindClusters(object = sobj,
+							verbose = FALSE,
+							algorithm = 3,
+							graph.name = paste0("snn_ndim", ndim))
+
+	sobj[["first_round_clusters"]] <- sobj$seurat_clusters
+
+	##################################
+
 	# sce <- as.SingleCellExperiment(sobj)
-	# saveRDS(sce, "debug_sce.RDS")
-	# saveRDS(sobj, "debug_sobj.RDS")
+	# graph <- scran::buildSNNGraph(x = sce, use.dimred = "LSI_ALL_CELL_PEAKS", k=20,
+	# 							  type = "jaccard")
 
-	graph <- sobj@misc[[paste0("igraph_snn_ndim", ndim)]]
-    cluster_leiden <- factor(igraph::cluster_leiden(graph, 
-													objective_function = "modularity",
-                                        			resolution_parameter = 0.8, 
-                                        			n_iterations =10)$membership)
+	##################################
 
-	sobj[["first_round_clusters"]] <- cluster_leiden
-	saveRDS(sobj, "debug_sobj.RDS")
+	# sobj <- PrepareGraph(sobj, reduction="lsi_all_cell_peaks",
+	# 				components=components, 
+	# 				graph.name.ls=c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)), 
+	# 				igraph.name=paste0("igraph_snn_ndim", ndim))
+
+	# graph <- sobj@misc[[paste0("igraph_snn_ndim", ndim)]]
+    # cluster_leiden <- factor(igraph::cluster_leiden(graph, 
+	# 												objective_function = "modularity",
+    #                                     			resolution_parameter = 0.8, 
+    #                                     			n_iterations =10)$membership)
+
+	# sobj[["first_round_clusters"]] <- cluster_leiden
+
+	##################################
+
 	# peak calling
 	peaks <- peakCallingSignac(sobj, macs2_path, genome, min_width, max_width, group_by = "first_round_clusters")
 	# get fragment objects
