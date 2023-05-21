@@ -5,7 +5,7 @@ source("../feature_engineering/func_signac.R", chdir=TRUE)
 # then do feature clustering on meta-cells(over-clustered cells based on the meta-features) 
 
 run_aggregation_method <- function(fragfiles, feature_method, dims=seq(2L, 12L), n_meta_features=1000, n_cells=2000, 
-norm_method='tfidf', reduce="pca", ...){
+norm_method='tfidf', reduce="pca", ndim=100, ...){
 
     if (feature_method == "signac_cluster") {
         sobj <- runSignac_ByClusterPeaks(fragfiles, ...)
@@ -13,20 +13,20 @@ norm_method='tfidf', reduce="pca", ...){
         feature_matrix <- t(feature_matrix)
     } else if (feature_method == "signac_all") {
         sobj <- runSignac_AllCellPeaks(fragfiles, ...)
-        feature_matrix <- GetAssayData(sobj[["all_cell_peaks"]], slot = "counts") # feature-by-cell matrix!
+        feature_matrix <- GetAssayData(sobj[["all_cell_peaks"]], slot = "counts") # the slot "counts" are raw counts, the slot "data" are normalized data (if any normalization has been applied)
         feature_matrix <- t(feature_matrix)
     } else if (feature_method == "archr_tile") {
-        sobj <- runArchR_tiles(fragfiles, ...)
+        sobj <- runArchR_tiles(fragfiles, ndim=ndim, ...)
         se <- getMatrixFromProject(ArchRProj = sobj, useMatrix = "TileMatrix", verbose = FALSE, binarize = TRUE)
         feature_matrix <- se@assays@data@listData$TileMatrix
         feature_matrix <- t(feature_matrix)
     }else if (feature_method == "archr_peak") {
-        sobj <- runArchR_peaks(fragfiles, ...)
+        sobj <- runArchR_peaks(fragfiles, ndim=ndim, ...)
         se <- getMatrixFromProject(ArchRProj = sobj, useMatrix = "PeakMatrix", verbose = FALSE, binarize = FALSE)
         feature_matrix <- se@assays@data@listData$TileMatrix
         feature_matrix <- t(feature_matrix)
     }else if (feature_method == "snapatac1") {
-        sobj <- runSnapATAC1(fragfiles = fragfiles, ...)
+        sobj <- runSnapATAC1(fragfiles = fragfiles, ndim=ndim, ...)
         feature_matrix <- sobj@bmat
     }else if (feature_method == "snapatac2") {
         sobj <- 0 # TODO
@@ -39,10 +39,20 @@ norm_method='tfidf', reduce="pca", ...){
     if(is.element(tolower(feature_method), c("signac_all", "signac_cluster"))){
         sce <- as.SingleCellExperiment(sobj)
         res <- aggregate_features(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce)
-        agg_feature_matrix <- res$Fmat
+
+        embed <- res$Fmat
+        counts <- Matrix::rowSums(feature_matrix)
+        embed <- embed[, seq_len(length.out = ndim)]
+        components <- DepthCorComponents(embed, counts, 0.75, ndim)
+        agg_feature_matrix <- embed[, components]
+        
         sobj[[DefaultAssay(sobj)]][["feature_groups"]]<- res$Fgrp
     } else {
-        agg_feature_matrix <- aggregate_features(feature_matrix, dims, n_meta_features, n_cells, norm_function, reduce)
+        embed <- aggregate_features(feature_matrix=feature_matrix, dims=dims, n_meta_features=n_meta_features, n_cells=n_cells, norm_function=norm_function, reduce=reduce, sce=NULL)
+        counts <- Matrix::rowSums(feature_matrix)
+        embed <- embed[, seq_len(length.out = ndim)]
+        components <- DepthCorComponents(embed, counts, 0.75, ndim)
+        agg_feature_matrix <- embed[, components]
         }
     
     return(list(sobj=sobj, Fmat=agg_feature_matrix))
@@ -50,6 +60,7 @@ norm_method='tfidf', reduce="pca", ...){
 
 aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce=NULL){
     require(SingleCellExperiment)
+    require(scDblFinder)
     # feature_matrix: a cell-by-feature matrix
     # first normalize feature_matrix using norm_function, then run PCA (reduce cell dim), then cluster features, 
     # then log-normalize the meta-features, and (optionaly) lastly do dimensional reduction on meta-feature matrix
@@ -78,18 +89,18 @@ aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cel
     }
 
     # create sce object
-    sce <- SingleCellExperiment(list(counts=agg_counts))
+    sce2 <- SingleCellExperiment(list(counts=agg_counts))
     # normalize the meta-features
-    sce <- scuttle::logNormCounts(sce)
+    sce2 <- scuttle::logNormCounts(sce2)
 
     if (reduce == "original") {
-        Fmat <- t(as.matrix(logcounts(sce)))
+        Fmat <- t(as.matrix(logcounts(sce2)))
     }else if (reduce == "pca") {
-        pca <- scater::runPCA(t(logcounts(sce)), center=TRUE, scale=TRUE, rank=100)
+        pca <- scater::runPCA(t(logcounts(sce2)), center=TRUE, scale=TRUE, rank=100)
         Fmat <- as.matrix(pca$x)
     }else if (reduce == 'lsi') {
-        tf.idf <- RunTFIDF(object=t(as.matrix(logcounts(sce))), method=1)
-        agg_lsi <- RunSVD(t(tf.idf), n = 100,nscale.embeddings = TRUE)
+        tf.idf <- RunTFIDF(object=t(as.matrix(logcounts(sce2))), method=1)
+        agg_lsi <- RunSVD(t(tf.idf), n = 100, scale.embeddings = TRUE)
         Fmat <- agg_lsi
     }else{stop("Please specify correct dimensional reduction method!")}
 
@@ -99,3 +110,4 @@ aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cel
             return(list(Fmat=Fmat, Fgrp=feature_groups))
             }
 }
+

@@ -238,7 +238,6 @@ if (tolower(opt$method) == "aggregation") {
 					genome=opt$genome,
 					scale=scaling,
 					resolutions=resolutions,
-					ndim=opt$ndim,
 					tileSize=opt$tile_size)
 
 		params <- c(list(fragfiles = opt$input, 
@@ -247,7 +246,8 @@ if (tolower(opt$method) == "aggregation") {
 					n_meta_features=opt$n_meta_features, 
 					n_cells=opt$n_cells, 
 					norm_method=opt$norm_method, 
-					reduce=opt$reduce),
+					reduce=opt$reduce,
+					ndim=opt$ndim),
 					params)
 
 		result_ls <- do.call(run_aggregation_method, params)
@@ -281,7 +281,8 @@ if (tolower(opt$method) == "aggregation") {
 					n_meta_features=opt$n_meta_features, 
 					n_cells=opt$n_cells, 
 					norm_method=opt$norm_method, 
-					reduce=opt$reduce),
+					reduce=opt$reduce,
+					ndim=opt$ndim),
 					params)
 
 		result_ls <- do.call(run_aggregation_method, params)
@@ -310,7 +311,8 @@ if (tolower(opt$method) == "aggregation") {
 					n_meta_features=opt$n_meta_features, 
 					n_cells=opt$n_cells, 
 					norm_method=opt$norm_method, 
-					reduce=opt$reduce),
+					reduce=opt$reduce,
+					ndim=opt$ndim),
 					params)
 
 		result_ls <- do.call(run_aggregation_method, params)

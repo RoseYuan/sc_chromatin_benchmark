@@ -14,7 +14,7 @@ add_labels <- function(sobj, label_table_file, barcode_col, label_col){
 }
 
 # function to add an embedding object to a Signac object
-add_embedding <- function(sobj, embedding_file){
+add_embedding <- function(sobj, embedding_file, embed_name="learned_embedding", max_dim=NULL){
     suppressPackageStartupMessages({
         require(Signac)
         require(Seurat)
@@ -22,7 +22,9 @@ add_embedding <- function(sobj, embedding_file){
     cell_id <- Cells(sobj)
     
     embed <- read.table(embedding_file, header = F, row.names = 1, sep="\t", comment.char = "")
-
+    if(!is.null(max_dim)){
+        embed <- embed[,1:max_dim]
+    }
     
     rownames(embed) <- gsub("CellinFile[0-9]*\\+", "", rownames(embed))
     rownames(embed) <- gsub("CellinFile[0-9]*\\#", "", rownames(embed))
@@ -41,7 +43,7 @@ add_embedding <- function(sobj, embedding_file){
 
     colnames(embed) <- NULL
 
-    sobj@reductions[["learned_embedding"]] <- CreateDimReducObject(embeddings = as.matrix(embed), key = "LSI_", assay = DefaultAssay(sobj))
+    sobj@reductions[[embed_name]] <- CreateDimReducObject(embeddings = as.matrix(embed), key = "LSI_", assay = DefaultAssay(sobj))
     return(sobj)
 }
 

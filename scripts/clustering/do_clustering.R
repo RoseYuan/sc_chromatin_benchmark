@@ -30,7 +30,7 @@ option_list <- list(
     make_option(c("-a", "--algorithm"), type="double", default=4, help="Clustering algorithm"),
     make_option(c("-c", "--clustering_output"), type="character", default=NA, help="output file path for clustering result"),
     make_option(c("-s", "--use_seurat"), action="store_true", default=FALSE, help="if use Seurat::Findclusters() to do clustering or not. If not ,use igraph::cluster::leiden()"),
-    make_option(c("-p", "--python"), type="character", default=NA, help="python path for r-reticulate."),
+    make_option(c("-q", "--python"), type="character", default=NA, help="python path for r-reticulate.")
 )
 # -h should be preserved for --help!!!
 
@@ -57,8 +57,8 @@ if (opt$prepare) {
                                 reduction = "learned_embedding", 
                                 graph.name = c(paste0("nn_ndim", opt$ndim), paste0("snn_ndim", opt$ndim))
                             )
-        sobj@graphs[[name1]] <- as.Graph(sobj@graphs[[name1]])
-        sobj@graphs[[name2]] <- as.Graph(sobj@graphs[[name2]])
+        # sobj@graphs[[name1]] <- as.Graph(sobj@graphs[[name1]])
+        # sobj@graphs[[name2]] <- as.Graph(sobj@graphs[[name2]])
     }
     ndim0 <- dim(sobj@reductions[["learned_embedding"]])[2]
     sobj <- RunUMAP(sobj, 
@@ -70,8 +70,10 @@ if (opt$prepare) {
     sobj <- readRDS(opt$output)
     if (opt$use_seurat) {
         if (!is.na(opt$python)) {
-            library(reticulate)
-            use_python(opt$python)
+            if (opt$python != "NA"){
+                library(reticulate)
+                use_python(opt$python)
+            }
         }
         sobj <- FindClusters(object = sobj, 
                         verbose = FALSE, 

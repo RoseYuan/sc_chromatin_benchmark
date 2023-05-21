@@ -5,8 +5,8 @@ r_env : base
 py_env : snapatac2
 reticulate_py: /home/siluo/softwares/mambaforge-pypy3/envs/r-reticulate/bin/python
 
-MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
-#  /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
+# MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
+MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
 
 FEATURE_SELECTION:
   ndim:
@@ -26,9 +26,9 @@ METHODS:
     # distance:
     #   - Euclidean
    R: true
-   feature_type:
-     - all_cell_peaks
-     - by_cluster_peaks
+  #  feature_type:
+  #    - all_cell_peaks
+  #    - by_cluster_peaks
    peak_filtering: true
 
 
@@ -36,9 +36,9 @@ METHODS:
   # distance:
   #   - Euclidean
    R: true
-   feature_type:
-     - tiles
-     - peaks
+  #  feature_type:
+  #    - tiles
+  #    - peaks
    peak_filtering: false # ArchR already filters peak by only using reproducible peaks
    tile_size:
      - 500
@@ -47,8 +47,8 @@ METHODS:
  # distance:
  #   - Euclidean
    R: true
-   feature_type:
-     - default
+  #  feature_type:
+  #    - default
    peak_filtering: false   # TODO: add this as the default
    tile_size:
       - 5000
@@ -70,8 +70,8 @@ METHODS:
 # Python methods
  SnapATAC2:
    R: false
-   feature_type:
-    - default
+  #  feature_type:
+  #   - default
    distance:
     - jaccard
     - cosine
@@ -88,34 +88,35 @@ DATA_SCENARIOS:
     genome: mm10
     blacklist: blacklist_mm10
     resolution: 
-    #  - 0.05
+     - 0.01
+     - 0.02
+     - 0.03
+     - 0.04
+     - 0.05
      - 0.05625
-     - 0.0625
+     - 0.0625 # before: only for the agg method
      - 0.075
-    #  - 0.1
+     - 0.1
      - 0.125
-    #  - 0.15
+     - 0.15
      - 0.175
-    #  - 0.2
+     - 0.2
      - 0.225
      - 0.25
-    #  - 0.3
+     - 0.3
      - 0.35
-    #  - 0.4
+     - 0.4
      - 0.45
-    #  - 0.5
+     - 0.5
      - 0.55
-    #  - 0.6
+     - 0.6
      - 0.65
-    #  - 0.7
+     - 0.7
      - 0.75
-    #  - 0.8
+     - 0.8
      - 0.85
      - 0.9
-    #  - 1
-    #  - 1.2
-    #  - 1.4
-    #  - 1.6
+
     min_width: 20
     max_width: 10000
     iter_resolution: 0.1,0.2,0.3

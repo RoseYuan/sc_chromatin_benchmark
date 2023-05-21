@@ -134,12 +134,12 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_wid
 				)
 	}
 
-	sobj <- FindTopFeatures(sobj,
-                             min.cutoff = "q5",
-                             assay = "all_cell_peaks")
 	sobj <- RunTFIDF(sobj,
 						  assay = "all_cell_peaks",
 						  method = 1)  # computes log(TF×IDF)
+	sobj <- FindTopFeatures(sobj,
+							min.cutoff = "q5",
+							assay = "all_cell_peaks")
 	sobj <- RunSVD(sobj,
 						n = 100,
 						assay = "all_cell_peaks",
@@ -203,12 +203,13 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 	frags <- Signac::Fragments(sobj)
 	sobj <- createSignacObj(frags, peaks, genome, assay_type = "by_cluster_peaks")
 
-	sobj <- FindTopFeatures(sobj,
-                             min.cutoff = "q5",
-                             assay = "by_cluster_peaks")
+
 	sobj <- RunTFIDF(sobj,
 					 method = 1,
 					 assay = "by_cluster_peaks")
+	sobj <- FindTopFeatures(sobj,
+							min.cutoff = "q5",
+							assay = "by_cluster_peaks")
 	sobj <- RunSVD(sobj,
 					n = 100,
 					assay = "by_cluster_peaks",

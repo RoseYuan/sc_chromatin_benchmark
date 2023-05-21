@@ -36,7 +36,8 @@ fi
 
 # compress the bed file 
 if [ ! -f "$sorted_file.gz" ]; then 
-    gzip -k $sorted_file || gzip $sorted_file; 
+    bgzip -k $sorted_file || gzip $sorted_file; 
+    tabix -p bed "$sorted_file.gz"
 fi
 
 if [ ! -f "$output_snapfile" ]; then 

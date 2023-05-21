@@ -5,8 +5,8 @@ r_env : base
 py_env : snapatac2
 reticulate_py: /home/siluo/softwares/mambaforge-pypy3/envs/r-reticulate/bin/python
 
-MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
-#  /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
+# MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
+MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
 
 FEATURE_SELECTION:
   ndim:
@@ -82,7 +82,7 @@ DATA_SCENARIOS:
   candidate1:
     organism: human
     assay: ATAC
-    file: /home/siluo/projects/simulation/raw_data/bed/candidate1/pooled_fragments_sorted.bed.gz
+    file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate1/pooled_fragments_sorted.bed.gz
     genome: hg38
     blacklist: blacklist_hg38
     resolution: 
@@ -101,13 +101,11 @@ DATA_SCENARIOS:
      - 0.6
      - 0.8
      - 1
-    #  - 1.2
-    #  - 1.4
-    #  - 1.6
+
     min_width: 20
     max_width: 10000
     iter_resolution: 0.1,0.2,0.4,0.6
-    label_table_file: /home/siluo/projects/simulation/processed_data/cell_type_annotation.tsv
+    label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate1/cell_type_annotation.tsv
     barcode_col: long_barcode
     label_col: cell_type
   

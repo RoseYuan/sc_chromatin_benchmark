@@ -44,15 +44,15 @@ METHODS:
    tile_size:
      - 500
 
- SnapATAC1: # should have snaptools installed in the r_env
- # distance:
- #   - Euclidean
-   R: true
-   feature_type:
-     - default
-   peak_filtering: false   # TODO: add this as the default
-   tile_size:
-      - 5000
+#  SnapATAC1: # should have snaptools installed in the r_env
+#  # distance:
+#  #   - Euclidean
+#    R: true
+#    feature_type:
+#      - default
+#    peak_filtering: false   # TODO: add this as the default
+#    tile_size:
+#       - 5000
 
 
  aggregation:
