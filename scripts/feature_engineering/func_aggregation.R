@@ -1,5 +1,17 @@
 source("../feature_engineering/func_signac.R", chdir=TRUE)
 
+suppressPackageStartupMessages({
+    devtools::load_all(path="/home/siluo/public/SiyuanLuo/projects/benchmark/scripts/feature_engineering/scFeatAgg")
+    require(Signac)
+    require(Seurat)
+    require(SingleCellExperiment)
+    require(mbkmeans)
+    library(tidyr)
+    library(scran)
+    library(BiocParallel)
+    library(bluster)
+})
+
 # aggregate features
 # two-pass mode: useful for large datasets, first do feature clustering on a subset of cells,
 # then do feature clustering on meta-cells(over-clustered cells based on the meta-features) 
@@ -60,13 +72,13 @@ norm_method='tfidf', reduce="pca", ndim=100, ...){
 
 aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce=NULL){
     require(SingleCellExperiment)
-    require(scDblFinder)
+    #require(scDblFinder)
     # feature_matrix: a cell-by-feature matrix
     # first normalize feature_matrix using norm_function, then run PCA (reduce cell dim), then cluster features, 
     # then log-normalize the meta-features, and (optionaly) lastly do dimensional reduction on meta-feature matrix
     if (is.null(feature_matrix) & is.null(sce)){stop("Please specify the feature matrix or sce object as input!")}
     if (is.null(sce)){
-        agg_counts <- scDblFinder:::aggregateFeatures(
+        agg_counts <- scFeatAgg::aggregateFeatures2(
         t(feature_matrix),
         dims.use = dims,
         k = n_meta_features,
@@ -75,7 +87,7 @@ aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cel
         norm.fn=norm_function, 
         twoPass=TRUE)
     } else {
-        sce_x <- scDblFinder:::aggregateFeatures(
+        sce_x <- scFeatAgg::aggregateFeatures2(
         sce,
         dims.use = dims,
         k = n_meta_features,
