@@ -1,20 +1,20 @@
 ROOT: /home/siluo/public/SiyuanLuo/projects/benchmark/outputs/Buenrostro_2018 # Edit it
 r_env : base
 py_env : snapatac2
-reticulate_py: NA #/home/siluo/softwares/mambaforge-pypy3/envs/r-reticulate/bin/python
+reticulate_py: /home/siluo/softwares/mambaforge-pypy3/envs/r-reticulate/bin/python #NA 
 
-MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
-# MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
+# MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
+MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
 
 FEATURE_SELECTION:
   ndim:
    - 15
-   - 30
-   - 50
-   - 100
+  #  - 30
+  #  - 50
+  #  - 100
   cutoff: 0.75
 
-SCALING: true
+SCALING: false
 
 
 METHODS:
@@ -65,6 +65,18 @@ METHODS:
    tile_size:
      - 500
 
+ aggregation2:
+   R: true
+   feature_type:
+    - default
+   peak_filtering: false   # TODO: add this as the default
+   resolution: 5
+   norm_method: tfidf
+   reduce: pca
+   feature_method: signac_cluster
+   tile_size:
+     - 500
+
 # Python methods
  SnapATAC2:
    R: false
@@ -85,26 +97,28 @@ DATA_SCENARIOS:
     genome: hg19 # Edit it
     blacklist: blacklist_hg19 # Edit it
     resolution:  # Edit it
-     - 0.05
-     - 0.1
+    #  - 0.05
+    #  - 0.1
+
      - 0.15
-     - 0.175
-     - 0.2
-     - 0.225
-     - 0.25
-     - 0.3
-     - 0.35
-     - 0.4
-     - 0.45
-     - 0.5
-     - 0.55
-     - 0.6
-     - 0.65
-     - 0.7
-     - 0.75
-     - 0.8
-     - 0.85
-     - 0.9
+    #  - 0.175
+    #  - 0.2
+    #  - 0.225
+    #  - 0.25
+    #  - 0.3
+    #  - 0.35
+
+    #  - 0.4
+    #  - 0.45
+    #  - 0.5
+    #  - 0.55
+    #  - 0.6
+    #  - 0.65
+    #  - 0.7
+    #  - 0.75
+    #  - 0.8
+    #  - 0.85
+    #  - 0.9
     #  - 0.95
     #  - 1
     #  - 1.1

@@ -252,14 +252,14 @@ class ParsedConfig:
         return ""
     
     def get_agg_option(self, wildcards):
-        if wildcards.method == "aggregation":
+        if wildcards.method == "aggregation" or wildcards.method == "aggregation2" :
             n_meta_features = self.get_from_method(wildcards.method, key="n_meta_features")
             n_cells = self.get_from_method(wildcards.method, key="n_cells")
             norm_method = self.get_from_method(wildcards.method, key="norm_method")
 
             reduce = self.get_from_method(wildcards.method, key="reduce")
             feature_method = self.get_from_method(wildcards.method, key="feature_method")
-
+            resolution = self.get_from_method(wildcards.method, key="resolution")
             cmd = f"-q {feature_method}"
             if reduce:
                 cmd = cmd + f" -e {reduce}"
@@ -269,5 +269,7 @@ class ParsedConfig:
                 cmd = cmd + f" -u {n_cells}"
             if norm_method:
                 cmd = cmd + f" -j {norm_method}"
+            if resolution:
+                cmd = cmd + f" -v {resolution}"
             return cmd
         return ""

@@ -1,11 +1,23 @@
 source("../feature_engineering/func_signac.R", chdir=TRUE)
 
+suppressPackageStartupMessages({
+    # devtools::load_all(path="/home/siluo/public/SiyuanLuo/projects/benchmark/scripts/feature_engineering/scFeatAgg")
+    require(Signac)
+    require(Seurat)
+    require(SingleCellExperiment)
+    require(mbkmeans)
+    library(tidyr)
+    library(scran)
+    library(BiocParallel)
+    library(bluster)
+})
+
 # aggregate features
 # two-pass mode: useful for large datasets, first do feature clustering on a subset of cells,
 # then do feature clustering on meta-cells(over-clustered cells based on the meta-features) 
 
-run_aggregation_method <- function(fragfiles, feature_method, dims=seq(2L, 12L), n_meta_features=1000, n_cells=2000, 
-norm_method='tfidf', reduce="pca", ndim=100, ...){
+run_aggregation_method <- function(fragfiles, feature_method, ndim_pca=20, res=5, 
+norm_method='tfidf', reduce="pca", ndim_feature_method=100, ...){
 
     if (feature_method == "signac_cluster") {
         sobj <- runSignac_ByClusterPeaks(fragfiles, ...)
@@ -16,17 +28,17 @@ norm_method='tfidf', reduce="pca", ndim=100, ...){
         feature_matrix <- GetAssayData(sobj[["all_cell_peaks"]], slot = "counts") # the slot "counts" are raw counts, the slot "data" are normalized data (if any normalization has been applied)
         feature_matrix <- t(feature_matrix)
     } else if (feature_method == "archr_tile") {
-        sobj <- runArchR_tiles(fragfiles, ndim=ndim, ...)
+        sobj <- runArchR_tiles(fragfiles, ndim=ndim_feature_method, ...)
         se <- getMatrixFromProject(ArchRProj = sobj, useMatrix = "TileMatrix", verbose = FALSE, binarize = TRUE)
         feature_matrix <- se@assays@data@listData$TileMatrix
         feature_matrix <- t(feature_matrix)
     }else if (feature_method == "archr_peak") {
-        sobj <- runArchR_peaks(fragfiles, ndim=ndim, ...)
+        sobj <- runArchR_peaks(fragfiles, ndim=ndim_feature_method, ...)
         se <- getMatrixFromProject(ArchRProj = sobj, useMatrix = "PeakMatrix", verbose = FALSE, binarize = FALSE)
         feature_matrix <- se@assays@data@listData$TileMatrix
         feature_matrix <- t(feature_matrix)
     }else if (feature_method == "snapatac1") {
-        sobj <- runSnapATAC1(fragfiles = fragfiles, ndim=ndim, ...)
+        sobj <- runSnapATAC1(fragfiles = fragfiles, ndim=ndim_feature_method, ...)
         feature_matrix <- sobj@bmat
     }else if (feature_method == "snapatac2") {
         sobj <- 0 # TODO
@@ -36,29 +48,30 @@ norm_method='tfidf', reduce="pca", ndim=100, ...){
         norm_function <- Signac::RunTFIDF
     }
     else{stop("Please specify correct normalization method!")}
+    gc()
     if(is.element(tolower(feature_method), c("signac_all", "signac_cluster"))){
         sce <- as.SingleCellExperiment(sobj)
-        res <- aggregate_features(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce)
+        res <- aggregate_features(feature_matrix=NULL, ndim_pca, res, norm_function, reduce, sce)
 
         embed <- res$Fmat
         counts <- Matrix::rowSums(feature_matrix)
-        embed <- embed[, seq_len(length.out = ndim)]
-        components <- DepthCorComponents(embed, counts, 0.75, ndim)
+        embed <- embed[, seq_len(length.out = ndim_feature_method)]
+        components <- DepthCorComponents(embed, counts, 0.75, ndim_feature_method)
         agg_feature_matrix <- embed[, components]
         
         sobj[[DefaultAssay(sobj)]][["feature_groups"]]<- res$Fgrp
     } else {
-        embed <- aggregate_features(feature_matrix=feature_matrix, dims=dims, n_meta_features=n_meta_features, n_cells=n_cells, norm_function=norm_function, reduce=reduce, sce=NULL)
+        embed <- aggregate_features(feature_matrix=feature_matrix, dims=ndim_pca, res=res, norm_function=norm_function, reduce=reduce, sce=NULL)
         counts <- Matrix::rowSums(feature_matrix)
-        embed <- embed[, seq_len(length.out = ndim)]
-        components <- DepthCorComponents(embed, counts, 0.75, ndim)
+        embed <- embed[, seq_len(length.out = ndim_feature_method)]
+        components <- DepthCorComponents(embed, counts, 0.75, ndim_feature_method)
         agg_feature_matrix <- embed[, components]
         }
     
     return(list(sobj=sobj, Fmat=agg_feature_matrix))
 }
 
-aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce=NULL){
+aggregate_features <- function(feature_matrix=NULL, ndims, res, norm_function, reduce, sce=NULL){
     require(SingleCellExperiment)
     require(scDblFinder)
     # feature_matrix: a cell-by-feature matrix
@@ -66,28 +79,24 @@ aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cel
     # then log-normalize the meta-features, and (optionaly) lastly do dimensional reduction on meta-feature matrix
     if (is.null(feature_matrix) & is.null(sce)){stop("Please specify the feature matrix or sce object as input!")}
     if (is.null(sce)){
-        agg_counts <- scDblFinder:::aggregateFeatures(
+        agg_counts <- scDblFinder::aggregateFeatures(
         t(feature_matrix),
-        dims.use = dims,
-        k = n_meta_features,
-        num_init = 3,
-        use.subset = n_cells,
-        norm.fn=norm_function, 
-        twoPass=TRUE)
+        res = res,
+        ndims = ndims,
+        norm.fn = norm_function,
+        capEmb = 3)
     } else {
-        sce_x <- scDblFinder:::aggregateFeatures(
+        sce_x <- scDblFinder::aggregateFeatures(
         sce,
-        dims.use = dims,
-        k = n_meta_features,
-        num_init = 3,
-        use.subset = n_cells,
-        norm.fn=norm_function, 
-        twoPass=TRUE)
+        res = res,
+        ndims = ndims,
+        norm.fn = norm_function,
+        capEmb = 3)
 
         agg_counts <- counts(sce_x)
         feature_groups <- metadata(sce_x)$featureGroups
     }
-
+    gc()
     # create sce object
     sce2 <- SingleCellExperiment(list(counts=agg_counts))
     # normalize the meta-features

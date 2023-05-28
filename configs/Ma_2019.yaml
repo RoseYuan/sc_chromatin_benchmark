@@ -68,6 +68,18 @@ METHODS:
    tile_size:
      - 500
 
+ aggregation2:
+   R: true
+   feature_type:
+    - default
+   peak_filtering: false   # TODO: add this as the default
+
+   norm_method: tfidf
+   reduce: pca
+   feature_method: signac_cluster
+   tile_size:
+     - 500
+
 # Python methods
  SnapATAC2:
    R: false
