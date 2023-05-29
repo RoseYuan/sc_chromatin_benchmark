@@ -1,6 +1,6 @@
 
 
-rule evaluation_run:
+rule evaluation_clustering_run:
     input:
         rds = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS",
         df = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}.tsv"
@@ -23,9 +23,32 @@ rule evaluation_run:
     shell:
         """
         {params.cmd} scripts/evaluation/do_evaluation.R -i {input.rds} \
-            -o {output.rds} -m {output.df} -c {input.df}
+            -o {output.rds} -m {output.df} -c {input.df} -l clustering
         """
 
+rule evaluation_latent_run:
+    input:
+        rds = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS"
+    output: 
+        df = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/latent_space_metrics.tsv",
+        rds = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/latent_space_evaluation.RDS"
+    message:
+        """
+        Evaluating latent spaces.
+        dataset: {wildcards.scenario}
+        command: {params.cmd}
+        feature engineering method: {wildcards.method}, {wildcards.feature_type}, {wildcards.distance}, {wildcards.tile_size}
+        ndim: {wildcards.ndim}
+        """
+    params:
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+    benchmark:
+        str(cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/latent_space_evaluation.benchmark")
+    shell:
+        """
+        {params.cmd} scripts/evaluation/do_evaluation.R -i {input.rds} \
+            -o {output.rds} -m {output.df} -l latent
+        """
 
 
 int_func, wildcards = cfg.get_all_wildcards(methods=cfg.get_all_methods())
@@ -36,13 +59,14 @@ int_func, wildcards = cfg.get_all_wildcards(methods=cfg.get_all_methods())
 # print(wildcards)
 rule get_metric_file_table:
     input: 
-        file = expand(rules.evaluation_run.output.df, int_func, **wildcards),
+        file_clustering = expand(rules.evaluation_clustering_run.output.df, int_func, **wildcards),
+        file_latent = expand(rules.evaluation_latent_run.output.df, int_func, **wildcards),
         root = cfg.ROOT
     output: 
         cfg.ROOT / "metric_file.tsv"
     run:
         import pandas as pd 
-        file_list1 = input.file
+        file_list1 = input.file_clustering + input.file_latent
         file_list2 = [i.removeprefix(input.root+"/") for i in file_list1]
         df = pd.DataFrame(file_list2)
         df = df.rename(columns={0: "file"})

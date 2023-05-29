@@ -260,15 +260,93 @@ evaluation <- function(sobj, true_labels, clustering, embedding_name="learned_em
     # decomposed ARI
     res <- adjusted_wallance_indices(true_labels, clustering)
     df_metric["AW", "value"] <- res$AW
+    df_metric["AW", "metric"] <- "AW"
+
     df_metric["AV", "value"] <- res$AV
+    df_metric["AV", "metric"] <- "AV"
+
     df_metric["AW2", "value"] <- res$AW2
+    df_metric["AW2", "metric"] <- "AW2"
+
     df_metric["AV2", "value"] <- res$AV2
+    df_metric["AV2", "metric"] <- "AV2"
+
     df_metric["ARI2", "value"] <- res$ARI2
+    df_metric["ARI2", "metric"] <- "ARI2"
 
     print(df_metric)
     return(list(metrics=df_metric, sil1=re1, sil2=re2, lisi1=re3, lisi2=re4, awav=res))
 }
 
+#######################################
+#Library size effect
+#######################################
+
+# graph: adjacency matrix
+# score: dataframe, use the column named col
+# calculate the geary C index
+# adapted from peakVI's script: https://zenodo.org/record/4728534/files/multiomics_latent_spaces.ipynb?download=1
+geary_c <- function(score, col, embed=NULL, graph=NULL, k=30){
+    if (is.null(embed) & is.null(graph)){stop("Either an input matrix or an input graph is required.")}
+    if (is.null(graph)){
+        knn_res <- RANN::nn2(embed, k=k)
+        dist <- knn_res$nn.dists
+        knn_idx <- knn_res$nn.idx
+        idx1 <- rep(knn_idx[,1],each=k)
+        idx2 <- c(t(knn_idx))
+        numer <- (dim(dist)[1] - 1) * sum(dist * ((score[idx1, col] - score[idx2, col]) ** 2))
+    } else {
+        require(Matrix)
+        graph <- as(graph, "TsparseMatrix")
+        dist <- graph@x
+        idx1 <- graph@Dimnames[[1]][graph@i+1]
+        idx2 <- graph@Dimnames[[1]][graph@j+1]
+        numer <- (length(dist) - 1) * sum(dist * ((score[idx1, col] - score[idx2, col]) ** 2))
+    }
+    
+    denom <- 2 * sum(dist) * sum((score[,col] - mean(score[,col])) ** 2)
+    return(numer / denom)
+}
+
+# compute for a latent representation matrix, what is the proportion of latent axis that 
+# are significantly correlated with counts. Suggestion: use log of counts
+significant_latent_frac <- function(embed, counts_vec, p_th=0.05, add_one=FALSE){
+    ndim <- dim(embed)[2]
+    n <- 0
+    for(i in 1:ndim){
+        p <- cor.test(embed[,i], counts_vec)$p.value
+        if (p <= p_th){ n <- n + 1}
+    }
+    if(add_one){
+        n <- n + 1
+        ndim <- ndim + 1
+        }
+    return(n/ndim)
+}
+
+# Calculate the log(Geary C index) between log counts and latent space distance
+cal_geary_c <- function(sobj, k=20, embedding_name="learned_embedding", n_neighbors = 20){
+  embed <- Embeddings(Reductions(sobj, embedding_name))
+  col <- paste0("nCount_", DefaultAssay(object = sobj))
+  log_counts <- log(sobj[[col]])
+  # calculate Geary C index for KNN graph
+  c_knn <- log(geary_c(log_counts, col, embed=embed, graph=NULL, k=k))
+
+  # calculate Geary C index for SNN graph
+  snn_g <- sobj@graphs[[names(sobj)[startsWith(names(sobj), "snn_ndim")][1]]]
+  c_snn <- log(geary_c(log_counts, col, embed=NULL, graph=snn_g))
+
+  # calculate Geary C index for similarity graph using merged fuzzy simplicial set approach
+  sim_graph_adj <- uwot::similarity_graph(embed, n_neighbors = n_neighbors)
+  colnames(sim_graph_adj) <- colnames(snn_g)
+  rownames(sim_graph_adj) <- rownames(snn_g)
+  c_sim_graph <- log(geary_c(log_counts, col, embed=NULL, graph=sim_graph_adj))
+  return(list(log_geary_c_knn=c_knn, log_geary_c_snn=c_snn, log_geary_c_sim_graph=c_sim_graph))
+}
+
+#######################################
+#Evenness
+#######################################
 
 normalize_freq <- function(clusterings){
   sample <- as.data.frame(table(clusterings))
@@ -301,4 +379,96 @@ Hill_diversity <- function(clusterings, q){
 eveness <- function(clusterings, a=1, b=0){
   Eveness = Hill_diversity(clusterings, a) / Hill_diversity(clusterings, b)
   return(Eveness)
+}
+
+#######################################
+#The main function to evaluate latent space (cell embedding + graph-based)
+#######################################
+
+
+evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
+  embed <- Embeddings(Reductions(sobj, embedding_name))
+  if (is.null(metrics)){
+      metrics <- c("Silhouette_label", "cLISI_label", "corr_frac", "log_geary_c_knn", "log_geary_c_snn", "log_geary_c_sim_graph")
+  }
+  df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
+  colnames(df_metric) <- c("metric", "value")
+  df_metric$metric <- metrics
+  rownames(df_metric) <- df_metric$metric
+
+  # calculating Silhouette score
+  dist.matrix <- cal_distance(embed, metric=dist_metric)
+
+  metric <- "Silhouette_label"
+  title <- paste0("Silhouette, ", "true labels, ", dist_metric, "distance")
+  re2 <- silhouette_result(dist.matrix, true_labels, title=title)
+  df_metric[metric, "value"] <- re2$avg
+
+  # calculating LISI score
+  metric <- "cLISI_label"
+  title <- paste0("cLISI, ", "true labels")
+  re4 <- lisi_result(x=embed, 
+                  meta_data=data.frame(clusterings=true_labels), 
+                  label_colname="clusterings", 
+                  perplexity = 30, 
+                  nn_eps = 0, 
+                  main=title)
+  df_metric[metric, "value"] <- re4$avg
+
+  # calculating fraction of significantly correlated latent dims
+  col <- paste0("nCount_", DefaultAssay(object = sobj))
+  log_counts <- log(sobj[[col]])
+  log_counts_vec <- log_counts[,col]
+  corr_frac <- significant_latent_frac(embed, log_counts_vec)
+  df_metric["corr_frac", "value"] <- corr_frac
+
+  # calculating Geary C index
+  res_geary_c <- cal_geary_c(sobj, k=20, embedding_name="learned_embedding", n_neighbors = 20)
+
+  df_metric["log_geary_c_knn", "value"] <- res_geary_c[["log_geary_c_knn"]]
+  df_metric["log_geary_c_snn", "value"] <- res_geary_c[["log_geary_c_snn"]]
+  df_metric["log_geary_c_sim_graph", "value"] <- res_geary_c[["log_geary_c_sim_graph"]]
+
+  print(df_metric)
+  return(list(metrics=df_metric, sil=re2, lisi=re4))
+}
+
+
+#######################################
+#The main function to evaluate clustering results
+#######################################
+
+evaluation_clustering <- function(sobj, true_labels, clustering, metrics=NULL){
+  embed <- Embeddings(Reductions(sobj,embedding_name))
+  if (is.null(metrics)){
+      metrics <- c("ARI","AMI","MI","VI")
+  }
+
+  df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
+  colnames(df_metric) <- c("metric", "value")
+  df_metric$metric <- metrics
+  rownames(df_metric) <- df_metric$metric
+  for (metric in df_metric$metric) {
+    df_metric[metric, "value"] <- compare_clusterings_external(true_labels, clustering, metric = metric)
+  }
+
+  # decomposed ARI
+  res <- adjusted_wallance_indices(true_labels, clustering)
+  df_metric["AW", "value"] <- res$AW
+  df_metric["AW", "metric"] <- "AW"
+
+  df_metric["AV", "value"] <- res$AV
+  df_metric["AV", "metric"] <- "AV"
+
+  df_metric["AW2", "value"] <- res$AW2
+  df_metric["AW2", "metric"] <- "AW2"
+
+  df_metric["AV2", "value"] <- res$AV2
+  df_metric["AV2", "metric"] <- "AV2"
+
+  df_metric["ARI2", "value"] <- res$ARI2
+  df_metric["ARI2", "metric"] <- "ARI2"
+
+  print(df_metric)
+  return(list(metrics=df_metric, awav=res))
 }
