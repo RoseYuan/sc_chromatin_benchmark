@@ -16,6 +16,7 @@ class ParsedConfig:
         self.SCALING = config["SCALING"]
         self.FEATURE_SELECTION = config["FEATURE_SELECTION"]
         self.METHODS = config["METHODS"]
+        self.GRAPH_CONSTRUCTION = config["GRAPH_CONSTRUCTION"]
         self.r_env = config["r_env"]
         self.py_env = config["py_env"]
         self.MACS2_PATH = config["MACS2_PATH"]
@@ -54,7 +55,13 @@ class ParsedConfig:
         if key == 'ndim':
             return value if isinstance(value, list) else [value]
         return value
-
+    
+    def get_graph_construction(self, key):
+        if key not in self.GRAPH_CONSTRUCTION:
+            raise ValueError(f"{key} not a valid key for feature selection")
+        value = self.GRAPH_CONSTRUCTION[key]
+        return value
+    
     def get_from_method(self, method, key):
         if method not in self.METHODS:
             raise ValueError(f"{method} not defined as method")

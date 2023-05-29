@@ -95,14 +95,17 @@ rule clustering_run:
         """
     params:
         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
-        reticulate_py = {cfg.reticulate_py}
+        reticulate_py = {cfg.reticulate_py},
+        use_umap = lambda w: cfg.get_graph_construction(key="use_umap"),
+        k_umap = lambda w: cfg.get_graph_construction(key="k_umap")
     benchmark:
         str(cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_clustering.benchmark")
     shell:
         """
         {params.cmd} scripts/clustering/do_clustering.R -o {input.rds} \
             -c {output.df}  \
-            -n {wildcards.ndim} -r {wildcards.resolution} --use_seurat -q {params.reticulate_py}
+            -n {wildcards.ndim} -r {wildcards.resolution} --use_seurat -q {params.reticulate_py}  \
+            -u {params.use_umap} -k {params.k_umap}
         """
 
 rule clustering_r:

@@ -19,6 +19,10 @@ FEATURE_SELECTION:
 SCALING: false
 
 
+GRAPH_CONSTRUCTION:
+  use_umap: false
+  k_umap: 10
+  
 METHODS:
 
 # R methods
