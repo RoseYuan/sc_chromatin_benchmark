@@ -49,14 +49,14 @@ option_list <- list(
 	make_option(c("-j", "--norm_method"), type="character", default='tfidf', help="name of the normalization method"),
 	make_option(c("-e", "--reduce"), type="character", default='pca', help="name of the dimensional reduction method"),
 	make_option(c("-q", "--feature_method"), type="character", default=NA, help="name of the feature method"),
-	make_option(c("-v", "--resolution"), type="double", default=5, help="resolution for aggregation2"),
+
 	# dataset specific parameters
 	make_option(c("-g", "--genome"), type="character", default=NA, help="genome version")
 )
 # -h should be preserved for --help!!!
 # -p reserved for number of processes
 
-methods <- c("signac", "archr", "aggregation", "snapatac1", "snapatac2", "aggregation2")
+methods <- c("signac", "archr", "aggregation", "snapatac1", "snapatac2")
 feature_methods <- c("signac_all", "signac_cluster", "archr_tile", "archr_peak", "snapatac1", "snapatac2")
 feature_types <- list(
 	"signac" = c("all_cell_peaks", "by_cluster_peaks"),
@@ -320,33 +320,6 @@ if (tolower(opt$method) == "aggregation") {
 		mobj <- result_ls$Fmat
 	}
 
-}
-
-
-if (tolower(opt$method) == "aggregation2") {  
-	check_aggregation_options()
-	feature_method <- opt$feature_method
-	if (is.element(tolower(feature_method), c("signac_all", "signac_cluster"))) {
-		check_peak_options()
-		params <- list(macs2_path=opt$macs2_path,
-					genome=opt$genome,
-					scale=scaling,
-					min_width=opt$min_width,
-					max_width=opt$max_width)
-	}
-	if (!is.element(tolower(feature_method), c("archr_tile", "archr_peak"))){
-		params <- c(list(fragfiles = opt$input, 
-					feature_method = tolower(feature_method),
-					res=opt$resolution,
-					norm_method=opt$norm_method, 
-					reduce=opt$reduce,
-					ndim_feature_method=opt$ndim),
-					params)
-
-		result_ls <- do.call(run_aggregation_method, params)
-		sobj <- result_ls$sobj
-		mobj <- result_ls$Fmat
-	}
 }
 
 saveRdsObject(sobj, opt$output)

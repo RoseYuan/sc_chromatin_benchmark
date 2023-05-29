@@ -43,15 +43,15 @@ METHODS:
    tile_size:
      - 500
 
- SnapATAC1: # should have snaptools installed in the r_env
- # distance:
- #   - Euclidean
-   R: true
-   feature_type:
-     - default
-   peak_filtering: false   # TODO: add this as the default
-   tile_size:
-      - 5000
+#  SnapATAC1: # should have snaptools installed in the r_env
+#  # distance:
+#  #   - Euclidean
+#    R: true
+#    feature_type:
+#      - default
+#    peak_filtering: false   # TODO: add this as the default
+#    tile_size:
+#       - 5000
 
 
  aggregation:
@@ -106,7 +106,7 @@ DATA_SCENARIOS:
     max_width: 10000
     iter_resolution: 0.1,0.2,0.4,0.6
     label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate1_3%/cell_type_annotation.tsv
-    barcode_col: long_barcode
+    barcode_col: long_barcode2
     label_col: cell_type
   
   # candidate2:

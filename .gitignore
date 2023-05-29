@@ -312,3 +312,13 @@ rsconnect/
 # Ignore all local history of files
 .history
 .ionide
+Rplot001.png
+Rplot002.png
+scripts/analysis/agg/BROCKMAN/notes.txt
+scripts/analysis/agg/candidate1_agg_explore/ArchR.Gene.Agg.pca.tsv
+scripts/analysis/agg/candidate1_agg_explore/ArchR.Gene.Agg.pca.tsv
+*.tsv
+*.svg
+*.png
+*.gz
+scripts/test2.R
