@@ -163,3 +163,45 @@ plot_subgraph <- function(sobj, type1, type2, main, graph_name="snn_ndim15"){
     plot(simplify(g1_s), vertex.label=NA, vertex.size=2, main=main) # remove loops and duplicated edges layout=layout.fruchterman.reingold
     legend("topleft", legend=c(type1, type2), pch=21, pt.bg=c("red","white"))
 }
+
+# graph: adjacency matrix
+# score: dataframe, use the column named col
+# calculate the geary C index
+# adapted from peakVI's script: https://zenodo.org/record/4728534/files/multiomics_latent_spaces.ipynb?download=1
+geary_c <- function(score, col, embed=NULL, graph=NULL, k=30){
+    if (is.null(embed) & is.null(graph)){stop("Either an input matrix or an input graph is required.")}
+    if (is.null(graph)){
+        knn_res <- RANN::nn2(embed, k=k)
+        dist <- knn_res$nn.dists
+        knn_idx <- knn_res$nn.idx
+        idx1 <- rep(knn_idx[,1],each=k)
+        idx2 <- c(t(knn_idx))
+        numer <- (dim(dist)[1] - 1) * sum(dist * ((score[idx1, col] - score[idx2, col]) ** 2))
+    } else {
+        require(Matrix)
+        graph <- as(graph, "TsparseMatrix")
+        dist <- graph@x
+        idx1 <- graph@Dimnames[[1]][graph@i+1]
+        idx2 <- graph@Dimnames[[1]][graph@j+1]
+        numer <- (length(dist) - 1) * sum(dist * ((score[idx1, col] - score[idx2, col]) ** 2))
+    }
+    
+    denom <- 2 * sum(dist) * sum((score[,col] - mean(score[,col])) ** 2)
+    return(numer / denom)
+}
+
+# compute for a latent representation matrix, what is the proportion of latent axis that 
+# are significantly correlated with counts. Suggestion: use log of counts
+significant_latent_frac <- function(embed, counts_vec, p_th=0.05, add_one=FALSE){
+    ndim <- dim(embed)[2]
+    n <- 0
+    for(i in 1:ndim){
+        p <- cor.test(embed[,i], counts_vec)$p.value
+        if (p <= p_th){ n <- n + 1}
+    }
+    if(add_one){
+        n <- n + 1
+        ndim <- ndim + 1
+        }
+    return(n/ndim)
+}
