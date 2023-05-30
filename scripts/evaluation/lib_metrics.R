@@ -279,6 +279,82 @@ evaluation <- function(sobj, true_labels, clustering, embedding_name="learned_em
 }
 
 #######################################
+#graph connectivity
+#######################################
+
+# compute comminity strength/graph connectivity
+# graph: the whole SNN graph; label_idx: the index of the label of the community to compute
+community_strength <- function(graph, label, label_idx){
+  suppressPackageStartupMessages({
+    require(igraph)
+  })
+  V(graph)$label <- label
+  label_ls <- unique(label)
+  df_graph <- as_data_frame(graph, what = c("edges"))
+  
+  v_1 <- V(graph)[V(graph)$label == label_ls[label_idx]]
+  v_2 <- V(graph)[V(graph)$label != label_ls[label_idx]]
+
+  
+  l1 <- length(v_1)
+  
+  j1 <- 0
+  w1 <- 0
+  for (i in v_1){
+      df_tmp <- df_graph[df_graph$to == i | df_graph$from == i,] # edges of node i
+      a <- sum(df_tmp$from %in% v_1 & df_tmp$to %in% v_1) # within cluster edges of node i
+      b <- sum(df_tmp$from %in% v_1 & df_tmp$to %in% v_2) + sum(df_tmp$to %in% v_1 & df_tmp$from %in% v_2)# between cluster edges of node i
+      c <- sum(df_tmp$weight[df_tmp$from %in% v_1 & df_tmp$to %in% v_1])
+      d <- sum(df_tmp$weight[df_tmp$from %in% v_1 & df_tmp$to %in% v_2]) + sum(df_tmp$weight[df_tmp$to %in% v_1 & df_tmp$from %in% v_2])
+      if(b>=a){j1 <- j1+1}
+      if(d>=c){w1 <- w1+1}
+  }
+  return(list(j1=j1, j1_frac=j1/l1, w1=w1, w1_frac=w1/l1))
+}
+
+avg_community_strength <- function(sobj, label, embedding_name="learned_embedding", n_neighbors=20){
+
+  label_ls <- unique(label)
+
+  # compute the community strength for KNN graph
+  knn <- sobj@graphs[[names(sobj)[startsWith(names(sobj), "nn_ndim")][1]]]
+  attributes(knn)$class <- "dgCMatrix"
+  knn_g <- igraph::graph_from_adjacency_matrix(adjmatrix = knn, mode = "directed", weighted = TRUE, add.colnames = TRUE)
+  df_knn <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
+  for(c in 1:length(label_ls)){
+    res <- community_strength(knn_g, label, label_idx=c)
+    df_knn <- rbind(df_knn, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
+  }
+  # compute the community strength for SNN graph
+  snn <- sobj@graphs[[names(sobj)[startsWith(names(sobj), "snn_ndim")][1]]]
+  attributes(snn)$class <- "dgCMatrix"
+  snn_g <- igraph::graph_from_adjacency_matrix(adjmatrix = snn, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
+  df_snn <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
+  for(c in 1:length(label_ls)){
+    res <- community_strength(snn_g, label, label_idx=c)
+    df_snn <- rbind(df_snn, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
+  }
+  # compute the community strength for umap similarity graph
+  embed <- Embeddings(Reductions(sobj, embedding_name))
+  sim_graph_adj <- uwot::similarity_graph(embed, n_neighbors = n_neighbors)
+  colnames(sim_graph_adj) <- colnames(snn_g)
+  rownames(sim_graph_adj) <- rownames(snn_g)
+  umap_g <- igraph::graph_from_adjacency_matrix(adjmatrix = sim_graph_adj, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
+  df_umap <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
+  for(c in 1:length(label_ls)){
+    res <- community_strength(umap_g, label, label_idx=c)
+    df_umap <- rbind(df_umap, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
+  }
+
+  # calculate the average
+  avg_knn <- mean(df_knn$weak_frac)
+  avg_snn <- mean(df_snn$weak_frac)
+  avg_umap <- mean(df_umap$weak_frac)
+
+  return(list(avg_knn=avg_knn, avg_snn=avg_snn, avg_umap=avg_umap, df_knn=df_knn, df_snn=df_snn,df_umap=df_umap))
+}
+
+#######################################
 #Library size effect
 #######################################
 
@@ -309,19 +385,26 @@ geary_c <- function(score, col, embed=NULL, graph=NULL, k=30){
 }
 
 # compute for a latent representation matrix, what is the proportion of latent axis that 
-# are significantly correlated with counts. Suggestion: use log of counts
-significant_latent_frac <- function(embed, counts_vec, p_th=0.05, add_one=FALSE){
+# are significantly partially correlated with counts. Suggestion: use log of counts
+significant_latent_frac <- function(embed, counts_vec, ground_truth, p_th=0.05, add_one=FALSE){
     ndim <- dim(embed)[2]
     n <- 0
+
+    # Convert the string vector to numbers based on the mapping
+    mapping <- unique(ground_truth)
+    numbers <- 1:length(mapping)
+    names(numbers) <- mapping
+    z <- numbers[ground_truth]
+
     for(i in 1:ndim){
-        p <- cor.test(embed[,i], counts_vec)$p.value
+        res <- ppcor::pcor.test(x=embed[,i], y=log(counts_vec), z=z, method="pearson")
         if (p <= p_th){ n <- n + 1}
     }
     if(add_one){
         n <- n + 1
         ndim <- ndim + 1
         }
-    return(n/ndim)
+    return(list(frac=n/ndim)) 
 }
 
 # Calculate the log(Geary C index) between log counts and latent space distance
@@ -389,7 +472,8 @@ eveness <- function(clusterings, a=1, b=0){
 evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
   embed <- Embeddings(Reductions(sobj, embedding_name))
   if (is.null(metrics)){
-      metrics <- c("Silhouette_label", "cLISI_label", "corr_frac", "log_geary_c_knn", "log_geary_c_snn", "log_geary_c_sim_graph")
+      metrics <- c("Silhouette_label", "cLISI_label", "log_geary_c_knn", "log_geary_c_snn", 
+      "log_geary_c_sim_graph", "avg_connectivity_knn", "avg_connectivity_snn", "avg_connectivity_umap") #"corr_frac", 
   }
   df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
   colnames(df_metric) <- c("metric", "value")
@@ -415,12 +499,12 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
                   main=title)
   df_metric[metric, "value"] <- re4$avg
 
-  # calculating fraction of significantly correlated latent dims
-  col <- paste0("nCount_", DefaultAssay(object = sobj))
-  log_counts <- log(sobj[[col]])
-  log_counts_vec <- log_counts[,col]
-  corr_frac <- significant_latent_frac(embed, log_counts_vec)
-  df_metric["corr_frac", "value"] <- corr_frac
+  # # calculating fraction of significantly correlated latent dims
+  # col <- paste0("nCount_", DefaultAssay(object = sobj))
+  # log_counts <- log(sobj[[col]])
+  # log_counts_vec <- log_counts[,col]
+  # corr_frac <- significant_latent_frac(embed, log_counts_vec)
+  # df_metric["corr_frac", "value"] <- corr_frac
 
   # calculating Geary C index
   res_geary_c <- cal_geary_c(sobj, k=20, embedding_name="learned_embedding", n_neighbors = 20)
@@ -429,8 +513,14 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   df_metric["log_geary_c_snn", "value"] <- res_geary_c[["log_geary_c_snn"]]
   df_metric["log_geary_c_sim_graph", "value"] <- res_geary_c[["log_geary_c_sim_graph"]]
 
+  # calculating the graph connectivity
+  res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20)
+  df_metric["avg_connectivity_knn", "value"] <- res_cs[["avg_knn"]]
+  df_metric["avg_connectivity_snn", "value"] <- res_cs[["avg_snn"]]
+  df_metric["avg_connectivity_umap", "value"] <- res_cs[["avg_umap"]]
+
   print(df_metric)
-  return(list(metrics=df_metric, sil=re2, lisi=re4))
+  return(list(metrics=df_metric, sil=re2, lisi=re4, connectivity=res_cs))
 }
 
 
