@@ -523,12 +523,38 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   return(list(metrics=df_metric, sil=re2, lisi=re4, connectivity=res_cs))
 }
 
+evaluation_latent_sub <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
+  embed <- Embeddings(Reductions(sobj, embedding_name))
+  if (is.null(metrics)){
+      metrics <- c("log_geary_c_knn", "log_geary_c_snn", 
+      "log_geary_c_sim_graph", "avg_connectivity_knn", "avg_connectivity_snn", "avg_connectivity_umap") #"corr_frac", 
+  }
+  df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
+  colnames(df_metric) <- c("metric", "value")
+  df_metric$metric <- metrics
+  rownames(df_metric) <- df_metric$metric
 
+  # calculating Geary C index
+  res_geary_c <- cal_geary_c(sobj, k=20, embedding_name="learned_embedding", n_neighbors = 20)
+
+  df_metric["log_geary_c_knn", "value"] <- res_geary_c[["log_geary_c_knn"]]
+  df_metric["log_geary_c_snn", "value"] <- res_geary_c[["log_geary_c_snn"]]
+  df_metric["log_geary_c_sim_graph", "value"] <- res_geary_c[["log_geary_c_sim_graph"]]
+
+  # calculating the graph connectivity
+  res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20)
+  df_metric["avg_connectivity_knn", "value"] <- res_cs[["avg_knn"]]
+  df_metric["avg_connectivity_snn", "value"] <- res_cs[["avg_snn"]]
+  df_metric["avg_connectivity_umap", "value"] <- res_cs[["avg_umap"]]
+
+  print(df_metric)
+  return(list(metrics=df_metric, connectivity=res_cs))
+}
 #######################################
 #The main function to evaluate clustering results
 #######################################
 
-evaluation_clustering <- function(sobj, true_labels, clustering, metrics=NULL){
+evaluation_clustering <- function(sobj, true_labels, clustering, embedding_name="learned_embedding", metrics=NULL){
   embed <- Embeddings(Reductions(sobj,embedding_name))
   if (is.null(metrics)){
       metrics <- c("ARI","AMI","MI","VI")

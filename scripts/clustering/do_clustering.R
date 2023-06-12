@@ -95,7 +95,7 @@ if (opt$prepare) {
                     )
     } else {
         embed <- Embeddings(Reductions(sobj, "learned_embedding"))
-        g <- sobj@graph[[paste0("snn_ndim", opt$ndim)]]
+        g <- sobj@graphs[[paste0("snn_ndim", opt$ndim)]]
         sim_graph_adj <- uwot::similarity_graph(embed, n_neighbors = opt$k_umap)
         colnames(sim_graph_adj) <- colnames(g)
         rownames(sim_graph_adj) <- rownames(g)

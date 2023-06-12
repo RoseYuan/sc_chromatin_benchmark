@@ -276,7 +276,7 @@ class ParsedConfig:
                 cmd = cmd + f" -u {n_cells}"
             if norm_method:
                 cmd = cmd + f" -j {norm_method}"
-            if resolution:
-                cmd = cmd + f" -v {resolution}"
+            # if resolution:
+            #     cmd = cmd + f" -v {resolution}"
             return cmd
         return ""
