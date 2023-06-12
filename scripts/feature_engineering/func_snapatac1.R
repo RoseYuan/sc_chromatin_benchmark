@@ -126,7 +126,9 @@ preprocessingSnapATAC1 <- function(fragfiles, genome, genome_sizefile, binsize, 
 }
 
 loadSnapFile <- function(snapfile_list, sample.names){
-    require(SnapATAC)
+    suppressPackageStartupMessages({
+    require(SnapATAC)})
+
     snap.files <- unlist(snapfile_list)
     x.sp.ls <- lapply(seq(snap.files), function(i){
         createSnap(
@@ -180,8 +182,9 @@ addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_r
 }
 
 runSnapATAC1 <- function(fragfiles, output, genome, scale, ndim, genome_sizefile=NULL, black_list=NULL, binsize=5000){
+    suppressPackageStartupMessages({
     require(SnapATAC)
-    require(GenomicRanges)
+    require(GenomicRanges)})
     
     blacklist_database <- list(
         "hg19" = "database/blacklist/Blacklist/lists/hg19-blacklist.v2.bed.gz",
@@ -235,7 +238,9 @@ runSnapATAC1 <- function(fragfiles, output, genome, scale, ndim, genome_sizefile
 }
 
 getFeatureMatrixSnapATAC <- function(x.sp, corCutOff= 0.75, n = 100){
-    require(Matrix)
+    suppressPackageStartupMessages({
+    require(Matrix)})
+    
     # give the dim.reduct matrix cell names
     embed <- x.sp@smat@dmat
     rownames(embed) <- x.sp@metaData$barcode

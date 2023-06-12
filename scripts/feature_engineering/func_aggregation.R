@@ -59,8 +59,10 @@ norm_method='tfidf', reduce="pca", ndim=100, ...){
 }
 
 aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce=NULL){
+    suppressPackageStartupMessages({
     require(SingleCellExperiment)
     require(scDblFinder)
+    })
     # feature_matrix: a cell-by-feature matrix
     # first normalize feature_matrix using norm_function, then run PCA (reduce cell dim), then cluster features, 
     # then log-normalize the meta-features, and (optionaly) lastly do dimensional reduction on meta-feature matrix

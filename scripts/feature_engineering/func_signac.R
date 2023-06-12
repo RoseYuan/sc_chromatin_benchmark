@@ -16,8 +16,10 @@ DepthCorComponents <- function(embed, counts, corCutOff, n){
 }
 
 DepthCorComponentsSignac <- function(object, corCutOff, assay_type = NULL, n = NULL, reduction = "lsi") {
+	suppressPackageStartupMessages({
 	require(Signac)
-	require(Seurat)
+	require(Seurat)})
+
 	assay_type <- SetIfNull(x = assay_type, y = DefaultAssay(object = object))
 	dr <- object[[reduction]]
 	embed <- Embeddings(object = dr)
@@ -29,7 +31,9 @@ DepthCorComponentsSignac <- function(object, corCutOff, assay_type = NULL, n = N
 }
 
 getFeatureMatrixSignac <- function(sobj, embedding_name, assay = NULL, corCutOff = 0.75, n = 100) {
-	require(Signac)
+	suppressPackageStartupMessages({
+	require(Signac)})
+
 	embed <- Embeddings(Reductions(sobj, embedding_name))
 
 	# assess the correlation between each embedding component and sequencing depth.
@@ -40,10 +44,11 @@ getFeatureMatrixSignac <- function(sobj, embedding_name, assay = NULL, corCutOff
 
 peakCallingSignac <- function(obj, macs2_path, genome, min_width, max_width, group_by = NULL) {
 	#obj can be a fragment objects or Seurat objects
+	suppressPackageStartupMessages({
 	require(Signac)
 	require(Seurat)
 	require(GenomeInfoDb)
-	require(GenomicRanges)
+	require(GenomicRanges)})
 	
 	# get blacklist name and annotation
 	blacklist_signac <- list("hg19" = blacklist_hg19,
@@ -67,12 +72,13 @@ peakCallingSignac <- function(obj, macs2_path, genome, min_width, max_width, gro
 }
 
 createSignacObj <- function(frags, peaks, genome, assay_type) {
+	suppressPackageStartupMessages({
 	require(Signac)
 	require(Seurat)
 	require(GenomeInfoDb)
 	require(EnsDb.Hsapiens.v75)
 	require(EnsDb.Hsapiens.v86)
-	require(EnsDb.Mmusculus.v79)
+	require(EnsDb.Mmusculus.v79)})
 
 	# get gene annotations
 	annotation_list <- list("hg19" = EnsDb.Hsapiens.v75,
@@ -111,8 +117,10 @@ createSignacObj <- function(frags, peaks, genome, assay_type) {
 
 runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width) {
 	# create fragment objects
+	suppressPackageStartupMessages({
 	require(Signac)
-	require(Seurat)
+	require(Seurat)})
+	
 	# fragfile_list <- strsplit(fragfiles, ",")
 	fragfile_list <- unlist(strsplit(fragfiles, ","))
 	frag_list <- lapply(fragfile_list, function(i){Signac::CreateFragmentObject(path = i)})

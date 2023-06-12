@@ -1,5 +1,7 @@
 getFeatureMatrixArchR <- function(proj, embedding_name, ndim, corCutOff = 0.75) {
-	require(ArchR)
+	suppressPackageStartupMessages({
+	require(ArchR)})
+	
 	mobj <- getReducedDims(
     ArchRProj = proj,
     reducedDims = embedding_name,
