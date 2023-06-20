@@ -82,14 +82,15 @@ rule clustering_run:
         rds = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS"
         # rds = lambda wildcards: cfg.ROOT / "{scenario}/clustering" / cfg.get_from_method(method=wildcards.method, key="R") / "{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS"
     output: 
-        df = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}.tsv"
+        df = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}.tsv"
     message:
         """
         input: {input[0]}
         output: {output[0]}
-        Run clustering using resolution {wildcards.resolution}.
+        Run clustering using resolution {wildcards.resolution}, random seed {wildcards.seed}.
         dataset: {wildcards.scenario}
         command: {params.cmd}
+        use umap or not (snn): {params.use_umap}
         feature engineering method: {wildcards.method}, {wildcards.feature_type}, {wildcards.distance}, {wildcards.tile_size}
         ndim: {wildcards.ndim}
         """
@@ -99,12 +100,12 @@ rule clustering_run:
         use_umap = lambda w: cfg.get_graph_construction(key="use_umap"),
         k_umap = lambda w: cfg.get_graph_construction(key="k_umap")
     benchmark:
-        str(cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_clustering.benchmark")
+        str(cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}_clustering.benchmark")
     shell:
         """
         {params.cmd} scripts/clustering/do_clustering.R -o {input.rds} \
             -c {output.df}  \
-            -n {wildcards.ndim} -r {wildcards.resolution} --use_seurat -q {params.reticulate_py}  \
+            -n {wildcards.ndim} -r {wildcards.resolution} -v {wildcards.seed} --use_seurat -q {params.reticulate_py}  \
             -u {params.use_umap} -k {params.k_umap}
         """
 

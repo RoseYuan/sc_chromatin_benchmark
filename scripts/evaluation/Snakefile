@@ -3,10 +3,10 @@
 rule evaluation_clustering_run:
     input:
         rds = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/sobj_SNN.RDS",
-        df = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}.tsv"
+        df = cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}.tsv"
     output: 
-        df = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_metrics.tsv",
-        rds = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_evaluation.RDS"
+        df = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}_metrics.tsv",
+        rds = cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}_evaluation.RDS"
     message:
         """
         Evaluating clustering results.
@@ -19,7 +19,7 @@ rule evaluation_clustering_run:
     params:
         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
     benchmark:
-        str(cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/r{resolution}_evaluation.benchmark")
+        str(cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}_evaluation.benchmark")
     shell:
         """
         {params.cmd} scripts/evaluation/do_evaluation.R -i {input.rds} \
@@ -64,14 +64,26 @@ rule get_metric_file_table:
         file_latent = expand(rules.evaluation_latent_run.output.df, int_func, **wildcards),
         root = cfg.ROOT
     output: 
-        cfg.ROOT / "metric_file.tsv"
+        cfg.ROOT / "metric_file_seed.tsv"
     run:
         import pandas as pd 
-        file_list1 = input.file_clustering + input.file_latent
+        import numpy as np
+        file_list1 = input.file_clustering
         file_list2 = [i.removeprefix(input.root+"/") for i in file_list1]
-        df = pd.DataFrame(file_list2)
-        df = df.rename(columns={0: "file"})
-        df[['scenario', 'workflow','method','feature_type','tile_size','distance','ndim','filename']] = df['file'].str.split("/",  expand=True)
+        df1 = pd.DataFrame(file_list2)
+        df1 = df1.rename(columns={0: "file"})
+
+        file_list3 = input.file_latent
+        file_list4 = [i.removeprefix(input.root+"/") for i in file_list3]
+        df2 = pd.DataFrame(file_list4)
+        df2 = df2.rename(columns={0: "file"})
+
+
+        df1[['scenario', 'workflow','method','feature_type','tile_size','distance','ndim','seed','filename']] = df1['file'].str.split("/",  expand=True)
+        df1["seed"] = df1["seed"].str.removeprefix("seed")
+        df2[['scenario', 'workflow','method','feature_type','tile_size','distance','ndim','filename']] = df2['file'].str.split("/",  expand=True)
+        df2["seed"] = np.nan
+        df = pd.concat([df1,df2], ignore_index=True)
         df["resolution"] = df["filename"].str.removeprefix("r").str.removesuffix("_metrics.tsv")
         df.to_csv(output[0], sep='\t', header=True, index=False)
 

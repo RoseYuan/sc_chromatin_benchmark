@@ -115,6 +115,8 @@ class ParsedConfig:
         value = self.DATA_SCENARIOS[scenario][key]
         if key == 'resolution':
             return value if isinstance(value, list) else [value]
+        if key == 'seed':
+            return value if isinstance(value, list) else [value]
         return value
 
     def get_all_python_methods(self):
@@ -159,6 +161,7 @@ class ParsedConfig:
 
         for scenario in self.get_all_scenarios():
             resolution = self.get_from_scenario(scenario, key = "resolution")
+            seed = self.get_from_scenario(scenario, key = "seed")
 
             # if agg_resolution:  # if this is necessary? Will snakemake automatically manage it?
             #     resolution = ["all"]
@@ -167,9 +170,14 @@ class ParsedConfig:
             if resolution is False:
                 resolution = [0.2]
             cp_resolution = resolution
+            
+            if seed is False:
+                seed = [0]
+            cp_seed = seed
 
             for method in methods:
                 resolution = cp_resolution
+                seed = cp_seed
 
                 distance = self.get_from_method(method, key = "distance")
                 tile_size = self.get_from_method(method, key = "tile_size")
@@ -193,14 +201,15 @@ class ParsedConfig:
                         continue  # skip if method feature type is not defined in feature_types     
                     ot = set(feature_types).intersection(ot)
 
-                    ot, method, scenario, distance, ndim, tile_size, resolution = reshape_wildcards(
+                    ot, method, scenario, distance, ndim, tile_size, resolution, seed = reshape_wildcards(
                         ot,
                         [method],
                         [cp_scenario],
                         distance,
                         ndim,
                         tile_size,
-                        resolution
+                        resolution, 
+                        seed
                     )
 
                     wildcards["feature_type"].extend(ot)
@@ -209,18 +218,20 @@ class ParsedConfig:
                     wildcards["ndim"].extend(ndim)
                     wildcards["tile_size"].extend(tile_size)
                     wildcards["resolution"].extend(resolution)
+                    wildcards["seed"].extend(seed)
                     wildcards["scenario"].extend(scenario)
 
                 else:
                     ot = self.get_from_method(method, "feature_type")
-                    ot, method, scenario, distance, ndim, tile_size, resolution = reshape_wildcards(
+                    ot, method, scenario, distance, ndim, tile_size, resolution, seed = reshape_wildcards(
                         ot,
                         [method],
                         [cp_scenario],
                         distance,
                         ndim,
                         tile_size,
-                        resolution
+                        resolution,
+                        seed
                     )
 
                     wildcards["feature_type"].extend(ot)
@@ -229,6 +240,7 @@ class ParsedConfig:
                     wildcards["ndim"].extend(ndim)
                     wildcards["tile_size"].extend(tile_size)
                     wildcards["resolution"].extend(resolution)
+                    wildcards["seed"].extend(seed)
                     wildcards["scenario"].extend(scenario)
 
         # print(wildcards)

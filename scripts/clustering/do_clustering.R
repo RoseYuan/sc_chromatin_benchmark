@@ -33,7 +33,8 @@ option_list <- list(
     make_option(c("-a", "--algorithm"), type="double", default=4, help="Clustering algorithm"),
     make_option(c("-c", "--clustering_output"), type="character", default=NA, help="output file path for clustering result"),
     make_option(c("-s", "--use_seurat"), action="store_true", default=FALSE, help="if use Seurat::Findclusters() to do clustering or not. If not ,use igraph::cluster::leiden()"),
-    make_option(c("-q", "--python"), type="character", default=NA, help="python path for r-reticulate.")
+    make_option(c("-q", "--python"), type="character", default=NA, help="python path for r-reticulate."),
+    make_option(c("-v", "--seed"), type="double", default=NA, help="random seed used for clustering.")
 )
 # -h should be preserved for --help!!!
 
@@ -91,7 +92,8 @@ if (opt$prepare) {
                         verbose = FALSE, 
                         algorithm = opt$algorithm,
                         resolution = opt$resolution,
-                        graph.name = paste0("snn_ndim", opt$ndim)
+                        graph.name = paste0("snn_ndim", opt$ndim),
+                        random.seed = opt$seed
                     )
     } else {
         embed <- Embeddings(Reductions(sobj, "learned_embedding"))
@@ -105,7 +107,8 @@ if (opt$prepare) {
                 verbose = FALSE, 
                 algorithm = opt$algorithm,
                 resolution = opt$resolution,
-                graph.name = paste0("umap_graph_k",opt$k_umap)
+                graph.name = paste0("umap_graph_k",opt$k_umap),
+                random.seed = opt$seed
             )
     }
         df_label <- data.frame(sobj$seurat_clusters)

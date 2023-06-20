@@ -12,16 +12,16 @@ MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
 FEATURE_SELECTION:
   ndim:
    - 15
-   - 30
-   - 50
-   - 100
+  #  - 30
+  #  - 50
+  #  - 100
   cutoff: 0.75
 
 SCALING: true
 
 GRAPH_CONSTRUCTION:
   use_umap: false
-  k_umap: 10
+  k_umap: 20
   
 
 METHODS:
@@ -90,21 +90,30 @@ DATA_SCENARIOS:
     file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate2/pooled_fragments_sorted.bed.gz
     genome: hg38
     blacklist: blacklist_hg38
+
+    seed:
+     - 0
+     - 2
+     - 5
+     - 42
+     - 123
+
     resolution: 
      - 0.05
-     - 0.075
+    #  - 0.075
      - 0.1
-     - 0.125
+    #  - 0.125
      - 0.15
-     - 0.175
+    #  - 0.175
+    
      - 0.2
-     - 0.225
+    #  - 0.225
      - 0.25
-     - 0.275
-     - 0.3
-     - 0.325
-     - 0.35
-     - 0.4
+    #  - 0.275
+    #  - 0.3
+    #  - 0.325
+    #  - 0.35
+    #  - 0.4
     #  - 0.45
     #  - 0.5
     #  - 0.55
