@@ -40,6 +40,42 @@ rule feature_engineering_run_r:
             {params.archr} {params.aggregation}
         """
 
+# # only for benchmarking time and memory of agg
+# rule feature_engineering_agg_signac_cluster: 
+#     input:
+#         # adata=expand(rules.feature_engineering_prepare.output, prep="tsv.gz", allow_missing=True)
+#         adata = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="file"),
+#         signac = cfg.ROOT / "{scenario}/{scenario}/feature_engineering/R/Signac/by_cluster_peaks/0/default/{ndim}.RDS"
+#     output: 
+#         # rds2=cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/" / "agg_only" /"{ndim}.RDS",
+#         # mtx2=cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/" / "agg_only" /"{ndim}.tsv"
+#         rds2=cfg.ROOT / "{scenario}/{scenario}/feature_engineering/R/{method}_new/{feature_type}/{tile_size}/{distance}/{ndim}.RDS",
+#         mtx2=cfg.ROOT / "{scenario}/{scenario}/feature_engineering/R/{method}_new/{feature_type}/{tile_size}/{distance}/{ndim}.tsv"
+#     message:
+#         """
+#         Benchmarking aggregation_signac_cluster for the time and memory usage
+#         """
+#     params:
+#         peak    = cfg.get_peak_option_for_feature_engineering,
+#         aggregation = cfg.get_agg_option,
+#         cutoff  = lambda w: cfg.get_feature_selection(key="cutoff"),
+#         genome  = lambda w: cfg.get_from_scenario(w.scenario, key="genome"),
+#         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+#         # cmd     = f"conda activate {cfg.r_env}",
+#         scaling = cfg.SCALING
+#     benchmark:
+#         # repeat(str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/" / "agg_only" /"{ndim}.RDS.benchmark"), 3)
+#         str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}_new/{feature_type}/{tile_size}/{distance}/{ndim}.RDS.benchmark")
+#     shell:
+#         """
+#         {params.cmd} scripts/feature_engineering/runMethods.R -i {input.adata} \
+#             -o {output.rds2} -f {output.mtx2} \
+#             --method {wildcards.method} \
+#             --feature_type {wildcards.feature_type} \
+#             --scaling {params.scaling} -c {params.cutoff} -n {wildcards.ndim} \
+#             -g {params.genome} {params.peak} -d {wildcards.distance} -l {wildcards.tile_size} \
+#             {params.aggregation} -v {input.signac}
+#         """
 
 
 # ------------------------------------------------------------------------------
@@ -84,8 +120,12 @@ rule feature_engineering_run_python:
 
 
 int_func, r_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_R_methods())
+# int_func_agg, r_wildcards_agg = cfg.get_all_wildcards(methods=["aggregation"])
+
 rule engineered_R:
-    input: expand(rules.feature_engineering_run_r.output, int_func, **r_wildcards)
+    input: 
+        a = expand(rules.feature_engineering_run_r.output, int_func, **r_wildcards)
+        # b = expand(rules.feature_engineering_agg_signac_cluster.output, int_func_agg, **r_wildcards_agg)
     message: "R feature engineering methods"
 
 int_func, py_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_python_methods())

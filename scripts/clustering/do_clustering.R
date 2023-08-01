@@ -22,8 +22,10 @@ option_list <- list(
     make_option(c("-l", "--label_col"), type="character", default=NA, help="in label_table_file, column name of cell label."),
     make_option(c("-e", "--embedding_file"), type="character", default=NA, help="input file path for embedding matrix."),
     make_option(c("-z", "--prepare"), action="store_true", default=FALSE, help="if only preparation steps will be performed or not."),
+    
     # parameters for SNN
     make_option(c("-n", "--ndim"), type="double", default=100, help="number of dimensions for the embedding"),
+    
     # parameters for the merged fuzzy simplical set approach
     make_option(c("-u", "--use_umap"), type="character", default=FALSE, help="If use uwot::similarity_graph to build the similarity graph or not. If not, use SNN graph in Seurat."),
     make_option(c("-k", "--k_umap"), type="double", default=10, help="Number of neighbors used in UMAP graph construction."),
@@ -54,17 +56,20 @@ if (opt$prepare) {
     sobj <- add_embedding(sobj, opt$embedding_file)
 
     graph_name <- paste0("snn_ndim", opt$ndim)
+    ndim0 <- dim(sobj@reductions[["learned_embedding"]])[2]
+
     if (is.null(sobj@graphs[[graph_name]])) {
         name1 <- paste0("nn_ndim", opt$ndim)
         name2 <- paste0("snn_ndim", opt$ndim)
         sobj <- FindNeighbors(object = sobj, 
                                 reduction = "learned_embedding", 
-                                graph.name = c(paste0("nn_ndim", opt$ndim), paste0("snn_ndim", opt$ndim))
+                                graph.name = c(paste0("nn_ndim", opt$ndim), paste0("snn_ndim", opt$ndim)),
+                                dims=1:ndim0
                             )
         # sobj@graphs[[name1]] <- as.Graph(sobj@graphs[[name1]])
         # sobj@graphs[[name2]] <- as.Graph(sobj@graphs[[name2]])
     }
-    ndim0 <- dim(sobj@reductions[["learned_embedding"]])[2]
+
     sobj <- RunUMAP(sobj, 
                 reduction = "learned_embedding",
                 dims = 1:ndim0)

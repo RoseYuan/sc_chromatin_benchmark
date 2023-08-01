@@ -15,6 +15,9 @@ library(clv)
 library(MESS)
 })
 
+#######################################
+# partition-level metrics
+#######################################
 
 compare_clusterings_external <- function(true, pred, metric="ARI") {
     # check if the cell id matches
@@ -95,13 +98,10 @@ adjusted_wallance_indices <-function(true=NULL, pred=NULL, contigency_res=NULL){
     return(list("AW"=aw, "AV"=av, "ARI"=ari, "AW2"=aw2, "AV2"=av2, "ARI2"=ari2,"Awi"=awi, "Avj" = avj))
 }
 
-normalize_freq <- function(clusterings){
-  sample <- as.data.frame(table(clusterings))
-  Ntot <- sum(sample$Freq)
-  sample$norm_freq <- sample$Freq/Ntot
-  return(sample)
-}
 
+#######################################
+# embedding-level metrics
+#######################################
 
 #' Compute the average k nearest neighbor overlap.
 #' 
@@ -168,9 +168,6 @@ silhouette_result <- function(dist.matrix, labels, title="", my_col=NULL){
     return(list("fig" = p, "avg" = avg_sil, "sil" = sil))
 }
 
-# sil1 <- silhouette_score(x, clusterings, metric="Euclidean", title=paste0("Silhouette_",method,"_ndim",n,"_r",r," ATAC Clusters"))
-# sil2 <- silhouette_score(x, truth, metric="Euclidean", title=paste0("Silhouette_",method,"_ndim",n,"_r",r," RNA clusters"))
-
 
 lisi_result <- function(x, meta_data, label_colname, perplexity = 30, nn_eps = 0, print.summary=FALSE, main=''){
     suppressPackageStartupMessages({
@@ -204,82 +201,9 @@ lisi_result <- function(x, meta_data, label_colname, perplexity = 30, nn_eps = 0
     return(list(plot=p, avg=res_avg, lisi=df_res$cLISI))
 }
 
-#' @metrics1: metrics that do not need embeddings to calculate
-#' @metrics2: metrics that need embeddings to calculate
-evaluation <- function(sobj, true_labels, clustering, embedding_name="learned_embedding", dist_metric="Euclidean", metrics1=NULL, metrics2=NULL){
-    embed <- Embeddings(Reductions(sobj,embedding_name))
-    if (is.null(metrics1)){
-        metrics1 <- c("ARI","AMI","MI","VI")
-    }
-    if (is.null(metrics2)){
-        metrics2 <- c("Silhouette", "Silhouette_label", "cLISI", "cLISI_label")
-    }
-    df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics1)+length(metrics2)))
-    colnames(df_metric) <- c("metric", "value")
-    df_metric$metric <- c(metrics1, metrics2)
-    rownames(df_metric) <- df_metric$metric
-    for (metric in df_metric$metric) {
-        if (metric %in% metrics1) {
-            df_metric[metric, "value"] <- compare_clusterings_external(true_labels, clustering, metric = metric)
-        }
-    }
-    # calculating Silhouette score
-    dist.matrix <- cal_distance(embed, metric=dist_metric)
-
-    metric <- "Silhouette"
-    title <- paste0("Silhouette, ", "ATAC clusters, ", dist_metric, "distance")
-    re1 <- silhouette_result(dist.matrix, clustering, title=title)
-    df_metric[metric, "value"] <- re1$avg
-
-    metric <- "Silhouette_label"
-    title <- paste0("Silhouette, ", "true labels, ", dist_metric, "distance")
-    re2 <- silhouette_result(dist.matrix, true_labels, title=title)
-    df_metric[metric, "value"] <- re2$avg
-
-    # calculating cLISI score
-    metric <- "cLISI"
-    title <- paste0("cLISI, ", "ATAC clusters")
-    re3 <- lisi_result(x=embed, 
-                    meta_data=data.frame(clusterings=clustering), 
-                    label_colname="clusterings", 
-                    perplexity = 30, 
-                    nn_eps = 0,
-                    main=title)
-    df_metric[metric, "value"] <- re3$avg
-
-    metric <- "cLISI_label"
-    title <- paste0("cLISI, ", "true labels")
-    re4 <- lisi_result(x=embed, 
-                    meta_data=data.frame(clusterings=true_labels), 
-                    label_colname="clusterings", 
-                    perplexity = 30, 
-                    nn_eps = 0, 
-                    main=title)
-    df_metric[metric, "value"] <- re4$avg
-
-    # decomposed ARI
-    res <- adjusted_wallance_indices(true_labels, clustering)
-    df_metric["AW", "value"] <- res$AW
-    df_metric["AW", "metric"] <- "AW"
-
-    df_metric["AV", "value"] <- res$AV
-    df_metric["AV", "metric"] <- "AV"
-
-    df_metric["AW2", "value"] <- res$AW2
-    df_metric["AW2", "metric"] <- "AW2"
-
-    df_metric["AV2", "value"] <- res$AV2
-    df_metric["AV2", "metric"] <- "AV2"
-
-    df_metric["ARI2", "value"] <- res$ARI2
-    df_metric["ARI2", "metric"] <- "ARI2"
-
-    print(df_metric)
-    return(list(metrics=df_metric, sil1=re1, sil2=re2, lisi1=re3, lisi2=re4, awav=res))
-}
 
 #######################################
-#graph connectivity
+#graph-level metrics
 #######################################
 
 # compute comminity strength/graph connectivity
@@ -312,34 +236,46 @@ community_strength <- function(graph, label, label_idx){
   return(list(j1=j1, j1_frac=j1/l1, w1=w1, w1_frac=w1/l1))
 }
 
+
+graph_from_sobj <- function(sobj, graph_name, embedding_name="learned_embedding", n_neighbors=20){
+  if(graph_name == "umap"){
+    snn_g <- graph_from_sobj(sobj, names(sobj)[startsWith(names(sobj), "snn")][1])
+    embed <- Embeddings(Reductions(sobj, embedding_name))
+    sim_graph_adj <- uwot::similarity_graph(embed, n_neighbors = n_neighbors)
+    colnames(sim_graph_adj) <- colnames(snn_g)
+    rownames(sim_graph_adj) <- rownames(snn_g)
+    umap_g <- igraph::graph_from_adjacency_matrix(adjmatrix = sim_graph_adj, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
+    return(umap_g)
+  }else{
+    gm <- sobj@graphs[[graph_name]]
+    attributes(gm)$class <- "dgCMatrix"
+    g <- igraph::graph_from_adjacency_matrix(adjmatrix = gm, add.colnames = TRUE, mode = "directed", weighted = TRUE)
+    return(g)
+  }
+}
+
 avg_community_strength <- function(sobj, label, embedding_name="learned_embedding", n_neighbors=20){
 
   label_ls <- unique(label)
 
   # compute the community strength for KNN graph
-  knn <- sobj@graphs[[names(sobj)[startsWith(names(sobj), "nn_ndim")][1]]]
-  attributes(knn)$class <- "dgCMatrix"
-  knn_g <- igraph::graph_from_adjacency_matrix(adjmatrix = knn, mode = "directed", weighted = TRUE, add.colnames = TRUE)
+  name <- names(sobj)[startsWith(names(sobj), "nn_ndim")][1]
+  knn_g <- graph_from_sobj(sobj, name, embedding_name=embedding_name, n_neighbors=n_neighbors)
   df_knn <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
   for(c in 1:length(label_ls)){
     res <- community_strength(knn_g, label, label_idx=c)
     df_knn <- rbind(df_knn, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
   }
   # compute the community strength for SNN graph
-  snn <- sobj@graphs[[names(sobj)[startsWith(names(sobj), "snn_ndim")][1]]]
-  attributes(snn)$class <- "dgCMatrix"
-  snn_g <- igraph::graph_from_adjacency_matrix(adjmatrix = snn, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
+  name <- names(sobj)[startsWith(names(sobj), "snn_ndim")][1]
+  snn_g <- graph_from_sobj(sobj, name, embedding_name=embedding_name, n_neighbors=n_neighbors)
   df_snn <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
   for(c in 1:length(label_ls)){
     res <- community_strength(snn_g, label, label_idx=c)
     df_snn <- rbind(df_snn, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
   }
   # compute the community strength for umap similarity graph
-  embed <- Embeddings(Reductions(sobj, embedding_name))
-  sim_graph_adj <- uwot::similarity_graph(embed, n_neighbors = n_neighbors)
-  colnames(sim_graph_adj) <- colnames(snn_g)
-  rownames(sim_graph_adj) <- rownames(snn_g)
-  umap_g <- igraph::graph_from_adjacency_matrix(adjmatrix = sim_graph_adj, mode = "undirected", weighted = TRUE, add.colnames = TRUE)
+  umap_g <- graph_from_sobj(sobj, "umap", embedding_name=embedding_name, n_neighbors=n_neighbors)
   df_umap <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
   for(c in 1:length(label_ls)){
     res <- community_strength(umap_g, label, label_idx=c)
@@ -473,7 +409,7 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   embed <- Embeddings(Reductions(sobj, embedding_name))
   if (is.null(metrics)){
       metrics <- c("Silhouette_label", "cLISI_label", "log_geary_c_knn", "log_geary_c_snn", 
-      "log_geary_c_sim_graph", "avg_connectivity_knn", "avg_connectivity_snn", "avg_connectivity_umap") #"corr_frac", 
+      "log_geary_c_sim_graph", "avg_connectivity_knn", "avg_connectivity_snn", "avg_connectivity_umap") 
   }
   df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
   colnames(df_metric) <- c("metric", "value")
@@ -499,22 +435,15 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
                   main=title)
   df_metric[metric, "value"] <- re4$avg
 
-  # # calculating fraction of significantly correlated latent dims
-  # col <- paste0("nCount_", DefaultAssay(object = sobj))
-  # log_counts <- log(sobj[[col]])
-  # log_counts_vec <- log_counts[,col]
-  # corr_frac <- significant_latent_frac(embed, log_counts_vec)
-  # df_metric["corr_frac", "value"] <- corr_frac
-
   # calculating Geary C index
-  res_geary_c <- cal_geary_c(sobj, k=20, embedding_name="learned_embedding", n_neighbors = 20)
+  res_geary_c <- cal_geary_c(sobj, k=20, embedding_name=embedding_name, n_neighbors = 20)
 
   df_metric["log_geary_c_knn", "value"] <- res_geary_c[["log_geary_c_knn"]]
   df_metric["log_geary_c_snn", "value"] <- res_geary_c[["log_geary_c_snn"]]
   df_metric["log_geary_c_sim_graph", "value"] <- res_geary_c[["log_geary_c_sim_graph"]]
 
   # calculating the graph connectivity
-  res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20)
+  res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20, embedding_name=embedding_name)
   df_metric["avg_connectivity_knn", "value"] <- res_cs[["avg_knn"]]
   df_metric["avg_connectivity_snn", "value"] <- res_cs[["avg_snn"]]
   df_metric["avg_connectivity_umap", "value"] <- res_cs[["avg_umap"]]
@@ -523,39 +452,30 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   return(list(metrics=df_metric, sil=re2, lisi=re4, connectivity=res_cs))
 }
 
-evaluation_latent_sub <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
-  embed <- Embeddings(Reductions(sobj, embedding_name))
-  if (is.null(metrics)){
-      metrics <- c("log_geary_c_knn", "log_geary_c_snn", 
-      "log_geary_c_sim_graph", "avg_connectivity_knn", "avg_connectivity_snn", "avg_connectivity_umap") #"corr_frac", 
-  }
-  df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
-  colnames(df_metric) <- c("metric", "value")
-  df_metric$metric <- metrics
-  rownames(df_metric) <- df_metric$metric
+# evaluation_latent_sub <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
+#   embed <- Embeddings(Reductions(sobj, embedding_name))
+#   if (is.null(metrics)){
+#       metrics <- c("avg_connectivity_knn", "avg_connectivity_snn") 
+#   }
+#   df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
+#   colnames(df_metric) <- c("metric", "value")
+#   df_metric$metric <- metrics
+#   rownames(df_metric) <- df_metric$metric
 
-  # calculating Geary C index
-  res_geary_c <- cal_geary_c(sobj, k=20, embedding_name="learned_embedding", n_neighbors = 20)
+#   # calculating the graph connectivity
+#   res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20, embedding_name=embedding_name)
+#   df_metric["avg_connectivity_knn", "value"] <- res_cs[["avg_knn"]]
+#   df_metric["avg_connectivity_snn", "value"] <- res_cs[["avg_snn"]]
 
-  df_metric["log_geary_c_knn", "value"] <- res_geary_c[["log_geary_c_knn"]]
-  df_metric["log_geary_c_snn", "value"] <- res_geary_c[["log_geary_c_snn"]]
-  df_metric["log_geary_c_sim_graph", "value"] <- res_geary_c[["log_geary_c_sim_graph"]]
+#   print(df_metric)
+#   return(list(metrics=df_metric, connectivity=res_cs))
+# }
 
-  # calculating the graph connectivity
-  res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20)
-  df_metric["avg_connectivity_knn", "value"] <- res_cs[["avg_knn"]]
-  df_metric["avg_connectivity_snn", "value"] <- res_cs[["avg_snn"]]
-  df_metric["avg_connectivity_umap", "value"] <- res_cs[["avg_umap"]]
-
-  print(df_metric)
-  return(list(metrics=df_metric, connectivity=res_cs))
-}
 #######################################
 #The main function to evaluate clustering results
 #######################################
 
-evaluation_clustering <- function(sobj, true_labels, clustering, embedding_name="learned_embedding", metrics=NULL){
-  embed <- Embeddings(Reductions(sobj,embedding_name))
+evaluation_clustering <- function(true_labels, clustering, metrics=NULL){
   if (is.null(metrics)){
       metrics <- c("ARI","AMI","MI","VI")
   }

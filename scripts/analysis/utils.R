@@ -1,14 +1,16 @@
-library(ggplot2)
-library(dplyr)
-library(paletteer)
-library(ggpubr)
+suppressPackageStartupMessages({
+    library(ggplot2)
+    library(dplyr)
+    library(paletteer)
+    library(ggpubr)
 
-library(RColorBrewer)
-library(scales)
-library(pals)
+    library(RColorBrewer)
+    library(scales)
+    library(pals)
 
-library(igraph)
-library(dplyr)
+    library(igraph)
+    library(dplyr)
+})
 
 # method color
 my_col_m <- brewer.pal(12, "Paired")
@@ -18,9 +20,10 @@ my_color <- c("#FFFFFF","#FFFF66","#FFCC33","#F57F17","#EE0000","#990000","#6600
 my_color_2 <- c("#FFFFFF","#0066FF","#0033FF")  # For small values to be obvious from 0
 my_color_3 <- c("#FFFFFF","#0099FF","#0066FF","#0033FF","#000099")
 my_color_4 <- c("#FFFFFF","#FFCCCC","#FF9999","#FF6666","#FF3333","#CC0033")
+my_color_5 <- c("#0066CC","#3399FF","#FFFFFF","#FF99FF","#FF00FF")
 my_col_m2 <- brewer.pal(10, "Paired")[c(1,7,3:6,9:10)]
 my_col_m3 <- brewer.pal(10, "Paired")[c(2,7,3:6,9:10)]
-
+my_col_d <- brewer.pal(12, "Set3")
 
 # compute comminity strength
 # graph: the whole SNN graph; label_idx: the index of the label of the community to compute
@@ -89,18 +92,19 @@ cross_table_plot <- function(ground_truth, clusterings, a=1.3, b=5.7, c=2, m=0, 
 
     main <- ggplot(data, aes(Y, X, fill= Z3)) + 
     geom_tile(colour="black", size=0.1) + 
-    scale_fill_gradientn(colours = my_color, breaks=seq(0,100,10), guide = guide_colourbar()) +
+    scale_fill_gradientn(colours = my_color, breaks=seq(0,100,10), guide = guide_colourbar(title.position = "top")) +
     labs(x="ATAC cluster", y="True class", fill = "Cells per true class %") + 
     theme(legend.direction = "horizontal", 
         legend.position = "bottom", 
         legend.key.width= unit(a, 'cm'),
-        legend.text=element_text(size=12)) + 
+        legend.text=element_text(size=16, face="bold"),
+        legend.title=element_text(size=16, face="bold")) + 
     theme(plot.margin = unit(c(0, 0, 0, 1), "cm"),
         panel.background = element_blank(),
-        axis.title.x = element_text(size = 15, margin = margin(5,0,0,0)), 
-        axis.text.x = element_text(size = 12),
-        axis.title.y = element_text(size = 15, margin = margin(0,0,0,0)), 
-        axis.text.y = element_text(size = 12),)
+        axis.title.x = element_text(size = 16, margin = margin(5,0,0,0), face="bold"), 
+        axis.text.x = element_text(size = 16, face="bold"),
+        axis.title.y = element_text(size = 16, margin = margin(0,0,0,0), face="bold"), 
+        axis.text.y = element_text(size = 16, face="bold"))
 
     bp.x <- ggplot(data = df_avj, aes(x = cell_type, y = avj, fill=frac)) + 
     geom_bar(stat = "identity", colour = "black", size=0.1) + 
@@ -109,8 +113,8 @@ cross_table_plot <- function(ground_truth, clusterings, a=1.3, b=5.7, c=2, m=0, 
         axis.title.x = element_blank(), 
         axis.text.x = element_blank(), 
         axis.ticks.x = element_blank(), 
-        axis.text.y = element_text(size=12), 
-        axis.title.y = element_text(size = 15, margin = margin(10,5,0,0)),
+        axis.text.y = element_text(size=14, face="bold"), 
+        axis.title.y = element_text(size = 16, margin = margin(10,5,0,0), face="bold"),
         legend.position = "none",
         # legend.position = "top",
         panel.background = element_blank()) + 
@@ -119,11 +123,13 @@ cross_table_plot <- function(ground_truth, clusterings, a=1.3, b=5.7, c=2, m=0, 
     bp.y <- ggplot(data = df_awi, aes(x = cell_type, y = awi, fill=frac)) +
     geom_bar(stat = "identity", colour = "black", size=0.1) + coord_flip() + # theme_ipsum() + #theme_gray() +
     scale_fill_gradientn(colours = my_color_4, guide = guide_colourbar(), limits = c(m, n)) +
-    theme(axis.title.x = element_text(size = 15, margin = margin(5,5,0,0)), 
-            axis.text.x = element_text(size = 12),
+    theme(axis.title.x = element_text(size = 16, margin = margin(5,5,0,0), face="bold"), 
+            axis.text.x = element_text(size = 12, face="bold"),
             axis.text.y = element_blank(), 
             axis.title.y = element_blank(), 
             axis.ticks.y = element_blank(), 
+            legend.text=element_text(size=12, face="bold"),
+            legend.title=element_text(size=14, face="bold"),
             # legend.position="none",
             panel.background = element_blank()) + 
     labs(y="Completemess", fill="Fraction")+ theme(plot.margin = unit(c(0, 0, c, 0), "cm"))
@@ -137,11 +143,11 @@ cross_table_plot <- function(ground_truth, clusterings, a=1.3, b=5.7, c=2, m=0, 
             axis.title = element_blank(),
             line = element_blank(),
             panel.background = element_blank()) + 
-            geom_text(aes(label = paste0("ARI = ", round(res$ARI,3), "\n", "ARI2 = ", round(res$ARI2,3))), x = 0.5, y = 0.5)
+            geom_text(size=8,  fontface = "bold", aes(label = paste0("ARI = ", round(res$ARI,3), "\n", "ARI2 = ", round(res$ARI2,3))), x = 0.5, y = 0.5)
 
     plot <- ggarrange(
     bp.x, gg_empty, main, bp.y,
-    nrow = 2, ncol = 2, widths = c(3, 1), heights = c(1, 3)
+    nrow = 2, ncol = 2, widths = c(3, 1.2), heights = c(1, 3)
     )
     return(plot)
 }
@@ -162,5 +168,53 @@ plot_subgraph <- function(sobj, type1, type2, main, graph_name="snn_ndim15"){
     V(g1_s)$color <- gsub(type2,"white", V(g1_s)$color)
     plot(simplify(g1_s), vertex.label=NA, vertex.size=2, main=main) # remove loops and duplicated edges layout=layout.fruchterman.reingold
     legend("topleft", legend=c(type1, type2), pch=21, pt.bg=c("red","white"))
+}
+
+
+# read the meta data file and collect all metric values
+evaluate_dataset <- function(metric_file, outputdir, output1, output2){
+    df <- read.table(metric_file, sep="\t", header=TRUE)
+    setwd(outputdir)
+    df$rds_file <- gsub("_metrics.tsv", "_evaluation.RDS", df$file)
+    df["clustering_file"] <- gsub("evaluation", "clustering", df$file)
+    df["clustering_file"] <- gsub("_metrics", "", df$clustering_file)
+    df[df$resolution == "latent_space", "clustering_file"] <- NA
+    df["long_method"] <- paste(df$method, df$feature_type, df$distance, sep="_")
+    df$long_method <-gsub("_default","",as.character(df$long_method))
+    df$snn_file <- paste0(df$scenario, "/clustering/", df$method, "/", df$feature_type, "/", df$tile_size, "/", df$distance, "/", df$ndim, "/sobj_SNN.RDS")
+    df$n_clusters <- 0
+    for (i in 1:length(df$clustering_file)){
+        if(!is.na(df$clustering_file[i])){
+            clusterings <- read.table(df$clustering_file[i])
+            df[i, "n_clusters"] <- max(clusterings$clusterings)
+        }
+
+    }
+
+    df_metrics <- data.frame(matrix(ncol = 14, nrow = 0))
+    colnames(df_metrics) <- c("n_clusters","metric","value","method",
+                            "long_method","feature_type","tile_size",
+                            "distance","ndim","resolution","rds_file", 
+                            "clustering_file", "snn_file", "seed")
+
+    j <- 1
+    for(i in 1:dim(df)[1]){
+        file <- df$file[i]
+        df_metric <- read.table(df$file[i], sep="\t", header=TRUE)
+        for(metric in rownames(df_metric)){
+            df_metrics[j, "metric"] <- metric
+            df_metrics[j, "value"] <- df_metric[metric, "value"]
+            df_metrics[j ,c("n_clusters","method","feature_type","tile_size","distance","ndim","resolution", 
+                            "long_method", "rds_file", "clustering_file", "snn_file","seed")] <- df[i, c("n_clusters","method","feature_type",
+                                                                                                "tile_size","distance","ndim","resolution",
+                                                                                                "long_method", "rds_file", "clustering_file", 
+                                                                                                "snn_file","seed")]
+            j <- j+1
+        }
+    }
+    df_metrics$resolution <- as.numeric(df_metrics$resolution)
+
+    write.table(df, file = output1, sep = "\t", quote = FALSE)
+    write.table(df_metrics, file = output2, sep = "\t", quote = FALSE)
 }
 

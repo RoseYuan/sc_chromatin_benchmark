@@ -26,7 +26,7 @@ if (opt$evaluation_level == "clustering"){
 	rownames(df_clustering) <- df_clustering$barcode
 	clustering <- unlist(lapply(Cells(sobj), function(x){df_clustering[x, "clusterings"]}))
 
-	result <- evaluation_clustering(sobj, true_labels, clustering)
+	result <- evaluation_clustering(true_labels, clustering)
 
 } else if (opt$evaluation_level == "latent"){
 	result <- evaluation_latent(sobj, true_labels)

@@ -278,7 +278,7 @@ class ParsedConfig:
 
             reduce = self.get_from_method(wildcards.method, key="reduce")
             feature_method = self.get_from_method(wildcards.method, key="feature_method")
-            resolution = self.get_from_method(wildcards.method, key="resolution")
+            
             cmd = f"-q {feature_method}"
             if reduce:
                 cmd = cmd + f" -e {reduce}"
@@ -288,7 +288,6 @@ class ParsedConfig:
                 cmd = cmd + f" -u {n_cells}"
             if norm_method:
                 cmd = cmd + f" -j {norm_method}"
-            # if resolution:
-            #     cmd = cmd + f" -v {resolution}"
+                
             return cmd
         return ""

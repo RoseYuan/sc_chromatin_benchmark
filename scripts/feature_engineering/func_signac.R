@@ -164,12 +164,8 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 									assay_type="all_cell_peaks", n=ndim,
 									reduction="lsi_all_cell_peaks")
 	# Do clustering
-
 	##################################
-	# library(reticulate)
-	# use_python("/home/siluo/Software/mambaforge/bin/python")
-	# use_python("/home/siluo/softwares/mambaforge-pypy3/envs/sc-chrom-R4/bin/python") # temporary
-    # use_python("/home/siluo/softwares/mambaforge-pypy3/bin/python")
+	## using Louvain
 	sobj <- FindNeighbors(object = sobj,
 							 reduction = "lsi_all_cell_peaks",
 							 dims = components,
@@ -183,13 +179,10 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 	sobj[["first_round_clusters"]] <- sobj$seurat_clusters
 
 	##################################
-
+	## using leiden in r-igraph
 	# sce <- as.SingleCellExperiment(sobj)
 	# graph <- scran::buildSNNGraph(x = sce, use.dimred = "LSI_ALL_CELL_PEAKS", k=20,
 	# 							  type = "jaccard")
-
-	##################################
-
 	# sobj <- PrepareGraph(sobj, reduction="lsi_all_cell_peaks",
 	# 				components=components, 
 	# 				graph.name.ls=c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)), 
@@ -229,7 +222,6 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 }
 
 #' Create igraph-compatible graph and save in Seurat object
-#'
 #' adapted from https://github.com/joshpeters/westerlund/blob/master/R/functions.R
 PrepareGraph <- function(sobj, reduction, graph.name.ls, igraph.name, components=NULL) {
 	components <- SetIfNull(components, 1:ncol(sobj@reductions[[reduction]]))

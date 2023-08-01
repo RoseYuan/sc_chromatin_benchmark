@@ -1,13 +1,3 @@
-# getScriptPath <- function() {
-# 	    cmd.args <- commandArgs()
-#     m <- regexpr("(?<=^--file=).+", cmd.args, perl=TRUE)
-#         script.dir <- dirname(regmatches(cmd.args, m))
-#         if (length(script.dir) == 0) stop("can't determine script dir: please call the script with Rscript")
-# 	    if (length(script.dir) > 1) stop("can't determine script dir: more than one '--file' argument detected")
-# 	    return(script.dir)
-# }
-
-# script_dir <- getScriptPath()
 source("scripts/feature_engineering/feature_engineering.R", chdir=TRUE)
 
 suppressPackageStartupMessages({
@@ -29,15 +19,18 @@ option_list <- list(
 	files, use comma to separate them"),
 	make_option(c("-o", "--output"), type="character", default=NA, help="output file for RDS object"),
 	make_option(c("-f", "--feature_output"), type="character", default=NA, help="output file for feature matrix"),
+	
 	# parameters for features
 	make_option(c("-d", "--distance"), type="character", default=NA, help="distance metric name"),
 	make_option(c("-t", "--feature_type"), type="character", default=NA, help="feature type"),
 	make_option(c("-l", "--tile_size"), type="double", default=NA, help="Tile/bin size for ArchR/SnapATAC1,2 method"),
 	make_option(c("-r", "--resolutions"), type="character", default="0.2,0.6,0.8", help="Resolution list for iterativeLSI in ArchR method"),
+	
 	# parameters for peak calling
 	make_option(c("-z", "--macs2_path"), type="character", default=NA, help="path to macs2"), # TODO change the character 
 	make_option(c("-a", "--min_width"), type="double", default=0, help="minimal peak width"),
 	make_option(c("-b", "--max_width"), type="double", default=Inf, help="maximal peak width"),
+	
 	# parameters for preprocessing
 	make_option(c("-s", "--scaling"), type="character", default=NA, help="scale the embedding or not"),
 	make_option(c("-c", "--cutoff"), type="double", default=0.75, help="cutoff for correlation with depth"),
@@ -49,7 +42,8 @@ option_list <- list(
 	make_option(c("-j", "--norm_method"), type="character", default='tfidf', help="name of the normalization method"),
 	make_option(c("-e", "--reduce"), type="character", default='pca', help="name of the dimensional reduction method"),
 	make_option(c("-q", "--feature_method"), type="character", default=NA, help="name of the feature method"),
-
+	make_option(c("-v", "--sobj_file"), type="character", default=NA, help="name of the Signac object to start with"),
+	
 	# dataset specific parameters
 	make_option(c("-g", "--genome"), type="character", default=NA, help="genome version")
 )
@@ -222,7 +216,8 @@ if (tolower(opt$method) == "aggregation") {
 					genome=opt$genome,
 					scale=scaling,
 					min_width=opt$min_width,
-					max_width=opt$max_width)
+					max_width=opt$max_width,
+					sobj_file=opt$sobj_file)
 	}
 	if (tolower(feature_method) == "archr_tile") {
 		check_tilesize_options()

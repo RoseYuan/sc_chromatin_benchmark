@@ -70,8 +70,8 @@ runArchR_tiles <- function(fragfiles, output, genome, scale, resolutions, ndim, 
 	    useMatrix = "TileMatrix",
 	    name = paste0("IterativeLSI_ndim",ndim),
 	    iterations = n_iteration,
-	    clusterParams = list( #See Seurat::FindClusters
-		resolution = resolutions, #c(0.1, 0.2, 0.4, 0.6, 0.8, 1.0)
+	    clusterParams = list(
+		resolution = resolutions, 
 		sampleCells = nsample,
 		n.start = 10,
 		algorithm = 3
