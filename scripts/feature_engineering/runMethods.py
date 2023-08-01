@@ -13,7 +13,6 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--genome", help="Genome name.", type=str)
     parser.add_argument("-d", "--distance", help="Distance metric to use.", type=str)
     parser.add_argument("-l", "--tile_size", help="Tile/bin size for calculating the count matrix.", type=int)
-    parser.add_argument("-s", "--scaling", help="Scale the latent features or not.", type=bool)
     args = parser.parse_args()
 
     fragfiles = args.input_fragfile_list
@@ -26,7 +25,6 @@ if __name__ == "__main__":
     feature_type = args.feature_type
 
     ndim = args.ndim
-    scaling = args.scaling
 
 
     if method.lower() == "snapatac2":

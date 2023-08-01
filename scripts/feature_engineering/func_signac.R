@@ -115,7 +115,7 @@ createSignacObj <- function(frags, peaks, genome, assay_type) {
 }
 
 
-runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width) {
+runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max_width) {
 	# create fragment objects
 	suppressPackageStartupMessages({
 	require(Signac)
@@ -153,12 +153,12 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, scale, min_wid
 						assay = "all_cell_peaks",
 						reduction.key = "LSI_",
 						reduction.name = "lsi_all_cell_peaks",
-						scale.embeddings = scale)
+						scale.embeddings = TRUE)
 	return(sobj)
 }
 
-runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_width, max_width){
-	sobj <- runSignac_AllCellPeaks(fragfiles, macs2_path, genome, scale, min_width, max_width)
+runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome,  min_width, max_width){
+	sobj <- runSignac_AllCellPeaks(fragfiles, macs2_path, genome, min_width, max_width)
 	ndim <- 30 # use ndim=30 for clustering
 	components <- DepthCorComponentsSignac(sobj, corCutOff = 0.75,
 									assay_type="all_cell_peaks", n=ndim,
@@ -216,7 +216,7 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome, scale, min_w
 					assay = "by_cluster_peaks",
 					reduction.key = "LSI_",
 					reduction.name = "lsi_by_cluster_peaks",
-					scale.embeddings = scale)
+					scale.embeddings = TRUE)
 
 	return(sobj)
 }

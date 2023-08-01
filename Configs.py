@@ -13,7 +13,6 @@ class ParsedConfig:
 
         self.ROOT = Path(config["ROOT"]).resolve()
         self.DATA_SCENARIOS = config["DATA_SCENARIOS"]
-        self.SCALING = config["SCALING"]
         self.FEATURE_SELECTION = config["FEATURE_SELECTION"]
         self.METHODS = config["METHODS"]
         self.GRAPH_CONSTRUCTION = config["GRAPH_CONSTRUCTION"]

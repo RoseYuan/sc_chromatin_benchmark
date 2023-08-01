@@ -14,7 +14,7 @@ getFeatureMatrixArchR <- function(proj, embedding_name, ndim, corCutOff = 0.75) 
 }
 
 
-runArchR_tiles <- function(fragfiles, output, genome, scale, resolutions, ndim, tileSize=500){
+runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSize=500){
 	suppressPackageStartupMessages({
 		require(ArchR)
 		require(rhdf5)
@@ -78,7 +78,7 @@ runArchR_tiles <- function(fragfiles, output, genome, scale, resolutions, ndim, 
 		),
 	    varFeatures = 25000,
 	    dimsToUse = 1:ndim,
-	    scaleDims = scale, # by default
+	    scaleDims = FALSE, # by default
 	    force = TRUE
 	  )
 
@@ -86,8 +86,8 @@ runArchR_tiles <- function(fragfiles, output, genome, scale, resolutions, ndim, 
 	}
 
 
-runArchR_peaks <- function(fragfiles, output, genome, macs2_path, scale, resolutions, ndim, tileSize=500){
-	proj <- runArchR_tiles(fragfiles, output, genome, scale, resolutions, ndim, tileSize)
+runArchR_peaks <- function(fragfiles, output, genome, macs2_path, resolutions, ndim, tileSize=500){
+	proj <- runArchR_tiles(fragfiles, output, genome, resolutions, ndim, tileSize)
 
 	# Clustering
 	proj <- addClusters(
@@ -136,7 +136,7 @@ runArchR_peaks <- function(fragfiles, output, genome, macs2_path, scale, resolut
 	),
 	varFeatures = 25000,
 	dimsToUse = 1:ndim,
-	scaleDims = scale,
+	scaleDims = FALSE,
 	force = TRUE)
 
 	return(proj)

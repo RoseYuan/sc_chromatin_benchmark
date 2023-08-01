@@ -1,0 +1,190 @@
+# ROOT: /home/siluo/public/SiyuanLuo/projects/benchmark/outputs/test_complexity #edit it
+ROOT: /home/siluo/public/SiyuanLuo/projects/benchmark/outputs/test_ndim #edit it
+r_env : base
+# mamba create -n sc-chrom-R4 -c conda-forge -c bioconda r-base=4* r-essentials r-rlang r-signac r-seurat=4* xgboost bioconductor-GenomeInfoDb bioconductor-EnsDb.Hsapiens.v75 bioconductor-EnsDb.Hsapiens.v86 bioconductor-EnsDb.Mmusculus.v79 r-optparse bioconductor-biovizbase leidenalg pandas
+# undo previous changes on .Renviron
+py_env : snapatac2
+reticulate_py: /home/siluo/softwares/mambaforge-pypy3/envs/r-reticulate/bin/python
+# reticulate_py: NA
+
+# MACS2_PATH: /home/siluo/Software/mambaforge/envs/macs2/bin/macs2
+MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
+
+FEATURE_SELECTION:
+  ndim:
+   - 15
+   - 30
+   - 50
+   - 100
+  cutoff: 0.75
+
+GRAPH_CONSTRUCTION:
+  use_umap: false
+  k_umap: 20
+  
+
+METHODS:
+
+# R methods
+ Signac:
+    # distance:
+    #   - Euclidean
+   R: true
+   feature_type:
+     - all_cell_peaks
+     - by_cluster_peaks
+   peak_filtering: true
+
+
+ ArchR:
+  # distance:
+  #   - Euclidean
+   R: true
+   feature_type:
+     - tiles
+     - peaks
+   peak_filtering: false # ArchR already filters peak by only using reproducible peaks
+   tile_size:
+     - 500
+
+ SnapATAC1: # should have snaptools installed in the r_env
+ # distance:
+ #   - Euclidean
+   R: true
+   feature_type:
+     - default
+   peak_filtering: false   # TODO: add this as the default
+   tile_size:
+      - 5000
+
+
+ aggregation:
+   R: true
+   feature_type:
+    - default
+   peak_filtering: false   # TODO: add this as the default
+   n_meta_features: 1000
+   n_cells: 2000
+   norm_method: tfidf
+   reduce: pca
+  #  sobj_file:  XXXXXXXXXXXXXXXX
+   feature_method: signac_cluster
+   tile_size:
+     - 500
+
+# Python methods
+ SnapATAC2:
+   R: false
+   feature_type:
+    - default
+   distance:
+    - jaccard
+    - cosine
+   peak_filtering: false   # TODO: add this as the default
+   tile_size:
+     - 500
+
+DATA_SCENARIOS:
+  Cell_line_mixing: # Edit it
+    organism: human # Edit it
+    assay: ATAC
+    file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/Cell_line_mixing/GSE162690_CellLine.fragments.filtered.sorted.sorted.tsv.gz # Edit it
+    genome: hg19 # Edit it
+    blacklist: blacklist_hg19 # Edit it
+    seed:
+     - 0
+    resolution:  # Edit it
+     - 0.05
+    min_width: 20
+    max_width: 10000
+    iter_resolution: 0.05,0.1,0.2 # Edit it
+    label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/Cell_line_mixing/Cell_id_demuxlet_prediction.txt # Edit it
+    barcode_col: barcode # Edit it
+    label_col: prediction # Edit it
+  
+  candidate1:
+    organism: human
+    assay: ATAC
+    file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate1/pooled_fragments_sorted.bed.gz
+    genome: hg38
+    blacklist: blacklist_hg38
+    seed:
+     - 0
+    resolution: 
+     - 0.05
+    min_width: 20
+    max_width: 10000
+    iter_resolution: 0.1,0.2,0.4,0.6
+    label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate1/cell_type_annotation.tsv
+    barcode_col: long_barcode
+    label_col: cell_type
+  
+  candidate2:
+    organism: human
+    assay: ATAC
+    file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate2/pooled_fragments_sorted.bed.gz
+    genome: hg38
+    blacklist: blacklist_hg38
+    seed:
+     - 0
+    resolution: 
+     - 0.05
+    min_width: 20
+    max_width: 10000
+    iter_resolution: 0.1,0.2,0.4,0.6
+    label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate2/cell_type_annotation.tsv
+    barcode_col: long_barcode
+    label_col: cell_type
+
+  Buenrostro_2018: # Edit it
+    organism: human # Edit it
+    assay: ATAC
+    file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/Buenrostro_2018/Buenrostro_2018.fragment.sorted.bed.gz # Edit it
+    genome: hg19 # Edit it
+    blacklist: blacklist_hg19 # Edit it
+    seed:
+     - 0
+    resolution:  # Edit it
+     - 0.1
+    min_width: 20
+    max_width: 10000
+    iter_resolution: 0.2,0.4,0.8 # Edit it
+    label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/Buenrostro_2018/metadata.tsv # Edit it
+    barcode_col: barcode # Edit it
+    label_col: label # Edit it
+
+  Chen_2019:
+    organism: mouse
+    assay: ATAC
+    file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/Chen_2019/Chen_2019_filtered_fragments_sorted.bed.gz
+    # /home/siluo/projects/sc_chromatin_benchmark/cleaned_data/Chen_2019_filtered_fragments_sorted.bed.gz
+    genome: mm10
+    blacklist: blacklist_mm10
+    seed:
+     - 0
+    resolution: 
+     - 0.1
+    min_width: 20
+    max_width: 10000
+    iter_resolution: 0.1,0.2,0.3
+    label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/Chen_2019/Chen_2019_RNA_annotation.txt
+    barcode_col: barcode
+    label_col: final_label
+
+  PBMC_multiomics: # Edit it
+    organism: human # Edit it
+    assay: ATAC
+    file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/PBMC_multiomics/pbmc_granulocyte_sorted_10k_atac_fragments.filtered.sorted.tsv.gz # Edit it
+    genome: hg38 # Edit it
+    blacklist: blacklist_hg38 # Edit it
+    seed:
+     - 0
+    resolution:  # Edit it
+     - 0.1
+    min_width: 20
+    max_width: 10000
+    iter_resolution: 0.2,0.4,0.8 # Edit it
+    label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/cleaned_data/PBMC_multiomics/PBMC_multiomics_RNA_annotation.txt # Edit it
+    barcode_col: rna_barcode # Edit it
+    label_col: final_label # Edit it
+

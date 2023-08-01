@@ -11,12 +11,10 @@ MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/macs2/bin/macs2
 FEATURE_SELECTION:
   ndim:
    - 15
-  #  - 30
-  #  - 50
-  #  - 100
+   - 30
+   - 50
+   - 100
   cutoff: 0.75
-
-SCALING: true
 
 GRAPH_CONSTRUCTION:
   use_umap: false
@@ -95,7 +93,6 @@ DATA_SCENARIOS:
      - 5
      - 42
      - 123
-     - 197
 
     resolution: 
      - 0.05
@@ -121,7 +118,3 @@ DATA_SCENARIOS:
     label_table_file: /home/siluo/public/SiyuanLuo/projects/benchmark/raw_data/candidate1/cell_type_annotation.tsv
     barcode_col: long_barcode
     label_col: cell_type
-  
-  # candidate2:
-  #   resolution:
-  #    - 0.2

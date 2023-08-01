@@ -181,7 +181,7 @@ addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_r
     return(x.sp)
 }
 
-runSnapATAC1 <- function(fragfiles, output, genome, scale, ndim, genome_sizefile=NULL, black_list=NULL, binsize=5000){
+runSnapATAC1 <- function(fragfiles, output, genome, scale=TRUE, ndim, genome_sizefile=NULL, black_list=NULL, binsize=5000){
     suppressPackageStartupMessages({
     require(SnapATAC)
     require(GenomicRanges)})

@@ -32,7 +32,6 @@ option_list <- list(
 	make_option(c("-b", "--max_width"), type="double", default=Inf, help="maximal peak width"),
 	
 	# parameters for preprocessing
-	make_option(c("-s", "--scaling"), type="character", default=NA, help="scale the embedding or not"),
 	make_option(c("-c", "--cutoff"), type="double", default=0.75, help="cutoff for correlation with depth"),
 	make_option(c("-n", "--ndim"), type="double", default=100, help="number of dimensions for the embedding"),
 	
@@ -83,11 +82,6 @@ if (is.element(tolower(opt$method), names(feature_types))) {
 	stop("Correct feature type must be provided. See script usage (--help)")
 	}
 }
-if (is.element(opt$scaling, c("true", "True", "TRUE", "T"))) {
-	scaling <- TRUE
-} else {
-	scaling <- FALSE
-	}
 
 check_peak_options <- function() {
 	if (is.na(opt$macs2_path)) {
@@ -126,7 +120,6 @@ if (tolower(opt$method) == "signac") {
 		sobj <- runSignac_AllCellPeaks(fragfiles=opt$input,
 							macs2_path=opt$macs2_path,
 							genome=opt$genome,
-							scale=scaling,
 							min_width=opt$min_width,
 							max_width=opt$max_width)
 		mobj <- getFeatureMatrixSignac(sobj,
@@ -138,7 +131,6 @@ if (tolower(opt$method) == "signac") {
 	   	sobj <- runSignac_ByClusterPeaks(fragfiles=opt$input,
 									 macs2_path=opt$macs2_path,
 									genome=opt$genome,
-									scale=scaling,
 									min_width=opt$min_width,
 									max_width=opt$max_width)
 		mobj <- getFeatureMatrixSignac(sobj,
@@ -163,7 +155,6 @@ if (tolower(opt$method) == "archr") {
 		sobj <- runArchR_tiles(fragfiles=opt$input,
 							   output=dirname(opt$output),  # except for saving to RDS files, save to ArchR project directory
 							   genome=opt$genome,
-							   scale=scaling,
 							   resolutions=resolutions,
 							   ndim=opt$ndim,
 							   tileSize=opt$tile_size)
@@ -177,7 +168,6 @@ if (tolower(opt$method) == "archr") {
 							   output=dirname(opt$output),
 							   genome=opt$genome,
                                macs2_path=opt$macs2_path,
-							   scale=scaling,
 							   resolutions=resolutions,
 							   ndim=opt$ndim,
 							   tileSize=opt$tile_size)
@@ -195,7 +185,6 @@ if (tolower(opt$method) == "snapatac1") {
 	sobj <- runSnapATAC1(fragfiles = opt$input, 
 						 output = dirname(opt$output), 
 						 genome = opt$genome, 
-						 scale = scaling, 
 						 ndim = opt$ndim, 
 						 binsize=opt$tile_size)
 	
@@ -214,7 +203,6 @@ if (tolower(opt$method) == "aggregation") {
 		check_peak_options()
 		params <- list(macs2_path=opt$macs2_path,
 					genome=opt$genome,
-					scale=scaling,
 					min_width=opt$min_width,
 					max_width=opt$max_width,
 					sobj_file=opt$sobj_file)
@@ -231,7 +219,6 @@ if (tolower(opt$method) == "aggregation") {
 
 		params <- list(output=dirname(opt$output),  # except for saving to RDS files, save to ArchR project directory
 					genome=opt$genome,
-					scale=scaling,
 					resolutions=resolutions,
 					tileSize=opt$tile_size)
 
@@ -265,7 +252,6 @@ if (tolower(opt$method) == "aggregation") {
 		params <- list(output=dirname(opt$output),
 					genome=opt$genome,
 					macs2_path=opt$macs2_path,
-					scale=scaling,
 					resolutions=resolutions,
 					ndim=opt$ndim,
 					tileSize=opt$tile_size)
@@ -291,7 +277,6 @@ if (tolower(opt$method) == "aggregation") {
 		check_tilesize_options()
 		params <- list(output = dirname(opt$output), 
 					genome = opt$genome, 
-					scale = scaling, 
 					ndim = opt$ndim, 
 					binsize=opt$tile_size)
 	}
