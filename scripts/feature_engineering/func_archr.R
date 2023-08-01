@@ -6,7 +6,7 @@ getFeatureMatrixArchR <- function(proj, embedding_name, ndim, corCutOff = 0.75) 
     ArchRProj = proj,
     reducedDims = embedding_name,
     returnMatrix = TRUE,
-    scaleDims = FALSE,  # already scaled/not scaled when the reduced dimension is created
+    scaleDims = FALSE,  # already decided when the reduced dimension is created
     dimsToUse = 1:ndim,
     corCutOff = corCutOff
   )
@@ -78,7 +78,7 @@ runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSiz
 		),
 	    varFeatures = 25000,
 	    dimsToUse = 1:ndim,
-	    scaleDims = FALSE, # by default
+	    scaleDims = TRUE,
 	    force = TRUE
 	  )
 
@@ -136,7 +136,7 @@ runArchR_peaks <- function(fragfiles, output, genome, macs2_path, resolutions, n
 	),
 	varFeatures = 25000,
 	dimsToUse = 1:ndim,
-	scaleDims = FALSE,
+	scaleDims = TRUE,
 	force = TRUE)
 
 	return(proj)
