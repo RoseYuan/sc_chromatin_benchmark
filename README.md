@@ -31,7 +31,11 @@ conda env create -f python_env.yml
 ## Running the Pipeline<a name="running"></a>
 
 ### Download the test data<a name="download"></a>
+A small test dataset is provided and can be used to test the installation and the pipeline. To download and decompress it:
+```commandline
 
+tar -xzvf test_data.tar.gz
+```
 ### Prepare Configuration File<a name="config"></a>
 The configuration files specify the methods, datasets, parameters, as well as the python and R environments to use. The structure of a config file is as follows:
 
@@ -137,8 +141,8 @@ snakemake --configfile configs/test_data.yaml --cores 2
 ```
 ## Resources<a name="Resources"></a>
 ### Datasets<a name="Datasets"></a>
-- The data used in the study is deposited on xxx.
+- The data used in the study is deposited [here]() on Zenodo.
 ### Result files<a name="results"></a>
-- All the intermediate results, including xxx is deposited on xxx.
+- All the intermediate results, including xxx is deposited on xxx. # TODO
 ### Code and files for reproducibility<a name="reproducibility"></a>
-- The code and data files to preproduce the analysis and visualization in our manuscript is in xxx and xxx.
+- The code and files to reproduce the analysis and visualization in our manuscript is available at the repository: [benchmark_paper](https://github.com/RoseYuan/benchmark_paper/tree/master).
