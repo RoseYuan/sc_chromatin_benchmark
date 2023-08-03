@@ -42,6 +42,9 @@ option_list <- list(
 	make_option(c("-q", "--feature_method"), type="character", default=NA, help="name of the feature method"),
 	make_option(c("-v", "--sobj_file"), type="character", default=NA, help="name of the Signac object to start with"),
 	
+	## parameters for snapatac method
+	make_option(c("-s", "--py_env"), type="character", default=NA, help="name of the conda environment"),
+	
 	# dataset specific parameters
 	make_option(c("-g", "--genome"), type="character", default=NA, help="genome version")
 )
@@ -185,7 +188,8 @@ if (tolower(opt$method) == "snapatac1") {
 						 output = dirname(opt$output), 
 						 genome = opt$genome, 
 						 ndim = opt$ndim, 
-						 binsize=opt$tile_size)
+						 binsize=opt$tile_size,
+						 py_env = opt$py_env)
 	
 	mobj <- getFeatureMatrixSnapATAC(sobj, corCutOff= opt$cutoff, n = opt$ndim) #sed -i 's/+/:/' 100.tsv
 }

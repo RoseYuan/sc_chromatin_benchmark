@@ -56,7 +56,6 @@ scripts/data_cleaning/Ma_2019/**
 !scripts/data_cleaning/Ma_2019/*.sh
 !scripts/data_cleaning/Ma_2019/Ma_2019_RNA_annotation.txt
 
-database/
 database.zip
 # results
 *.RDS
@@ -69,7 +68,19 @@ std_output/
 test.R
 # std output
 std_output*
-#*.pdf
+*.pdf
+# others
+.lintr
+notes.txt
+run_snakemake.sh
+.gitmodules
+.gitignore~
+.Rprofile
+scripts/analysis/
+scripts/data_cleaning/
+envs/sc-chrom-pipeline-all.yaml
+envs/sc-chrom-pipeline-R4.1.yaml
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/

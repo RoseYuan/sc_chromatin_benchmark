@@ -23,8 +23,9 @@ rule feature_engineering_run_r:
         aggregation = cfg.get_agg_option,
         cutoff  = lambda w: cfg.get_feature_selection(key="cutoff"),
         genome  = lambda w: cfg.get_from_scenario(w.scenario, key="genome"),
-        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
-        # cmd     = f"conda activate {cfg.r_env}",
+        # cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+        cmd     = "Rscript",
+        py_env  = cfg.py_env
     benchmark:
         str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.RDS.benchmark")
     shell:
@@ -35,7 +36,7 @@ rule feature_engineering_run_r:
             --feature_type {wildcards.feature_type} \
             -c {params.cutoff} -n {wildcards.ndim} \
             -g {params.genome} {params.peak} -d {wildcards.distance} -l {wildcards.tile_size} \
-            {params.archr} {params.aggregation}
+            -s {params.py_env} {params.archr} {params.aggregation} 
         """
 
 # # only for benchmarking time and memory of agg

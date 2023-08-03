@@ -1,7 +1,0 @@
-Blacklist file:
-git clone --recurse-submodules https://github.com/Boyle-Lab/Blacklist.git
-
-Genome size file:
-wget http://hgdownload.cse.ucsc.edu/goldenpath/hg38/bigZips/hg38.chrom.sizes
-wget http://hgdownload.cse.ucsc.edu/goldenpath/hg19/bigZips/hg19.chrom.sizes
-wget http://hgdownload.cse.ucsc.edu/goldenpath/mm10/bigZips/mm10.chrom.sizes

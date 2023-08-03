@@ -115,12 +115,18 @@ snapRbind_new <- function (obj1, obj2)
 }
 
 
-preprocessingSnapATAC1 <- function(fragfiles, genome, genome_sizefile, binsize, data_dir){
+preprocessingSnapATAC1 <- function(fragfiles, genome, genome_sizefile, binsize, data_dir, py_env=NULL){
     fragfile_list <- unlist(strsplit(fragfiles, ","))
     for (fragfile in fragfile_list) {
         message(paste0("Preprocessing ", fragfile, ".............\n"))
-        bash_command <- paste0('bash scripts/feature_engineering/snapatac1_preprocessing.sh '
-        , fragfile, ' ', genome, ' ', genome_sizefile, ' ', binsize, ' ', data_dir)
+        if(is.null(py_env)){
+            bash_command <- paste0('bash scripts/feature_engineering/snapatac1_preprocessing.sh '
+            , fragfile, ' ', genome, ' ', genome_sizefile, ' ', binsize, ' ', data_dir)
+        }else{
+            bash_command <- paste0('conda run --no-capture-output -n ', py_env, 'bash scripts/feature_engineering/snapatac1_preprocessing.sh '
+            , fragfile, ' ', genome, ' ', genome_sizefile, ' ', binsize, ' ', data_dir)
+        }
+
         system(bash_command)
     }
 }
@@ -181,7 +187,7 @@ addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_r
     return(x.sp)
 }
 
-runSnapATAC1 <- function(fragfiles, output, genome, scale=TRUE, ndim, genome_sizefile=NULL, black_list=NULL, binsize=5000){
+runSnapATAC1 <- function(fragfiles, output, genome, scale=TRUE, ndim, genome_sizefile=NULL, black_list=NULL, binsize=5000, py_env=NULL){
     suppressPackageStartupMessages({
     require(SnapATAC)
     require(GenomicRanges)})
@@ -206,7 +212,7 @@ runSnapATAC1 <- function(fragfiles, output, genome, scale=TRUE, ndim, genome_siz
     black_list <- SetIfNull(black_list, black_list_y)
     df_black_list <- read.table(black_list, sep = "\t")
 
-    preprocessingSnapATAC1(fragfiles, genome, genome_sizefile, binsize, output)
+    preprocessingSnapATAC1(fragfiles, genome, genome_sizefile, binsize, output, py_env)
 
     # load data
     fragfile_list <- unlist(strsplit(fragfiles, ","))

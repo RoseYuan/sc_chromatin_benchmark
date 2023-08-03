@@ -9,5 +9,6 @@ dependencies:
   - snaptools
   - snakemake>=7.24
   - pip
+  - macs2
   - pip:
     - snapatac2==2.2.0

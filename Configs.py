@@ -66,7 +66,6 @@ class ParsedConfig:
             raise ValueError(f"{method} not defined as method")
         if key not in self.METHODS[method]:
             return False
-            # raise ValueError(f"{key} not a valid attribute of scenario {scenario}")
         value = self.METHODS[method][key]
         if key == 'distance':
             return value if isinstance(value, list) else [value]
@@ -81,30 +80,6 @@ class ParsedConfig:
             return "R"
         else:
             return "python"
-    # def get_hvg(
-    #         self,
-    #         wildcards: snakemake.io.Wildcards,
-    #         output_pattern: str = None,
-    #         **kwargs
-    # ) -> str:
-    #     """
-    #     Get hvg parameter for integration run scripts
-    #     :param wildcards: wildcards passed by Snakemake containing at least 'hvg' key
-    #     :param output_pattern: file pattern with placeholders 'hvg'
-    #         Only needed for R integration methods to get path of separate HVG file
-    #         minimal example: 'output_dir/{hvg}.h5ad'
-    #     :param kwargs: additional wildcards that are not contained in output_pattern
-    #     :return: empty string for full-feature (n_hvg = 0), otherwise '-v <option>'
-    #         with <option> specific to python or R methods
-    #     """
-    #     n_hvgs = self.get_feature_selection(wildcards.hvg)
-    #     if n_hvgs == 0:
-    #         return ""
-    #     if output_pattern is not None:
-    #         p = Path(snakemake.io.expand(output_pattern, **wildcards, **kwargs)[0])
-    #         hvg_path = (p.parent / f'{p.stem}_hvg').with_suffix(p.suffix)
-    #         return f'-v "{hvg_path}"'
-    #     return f"-v {n_hvgs}"
 
     def get_from_scenario(self, scenario, key):
         if scenario not in self.DATA_SCENARIOS:
@@ -130,7 +105,7 @@ class ParsedConfig:
             if self.get_from_method(method, "R")
         ]
 
-    def get_all_wildcards(self, methods=None, feature_types=False): #agg_resolution=False
+    def get_all_wildcards(self, methods=None, feature_types=False): 
         """
         TODO: include method subsetting
         Collect all wildcards for wildcard-dependent rule
@@ -162,8 +137,6 @@ class ParsedConfig:
             resolution = self.get_from_scenario(scenario, key = "resolution")
             seed = self.get_from_scenario(scenario, key = "seed")
 
-            # if agg_resolution:  # if this is necessary? Will snakemake automatically manage it?
-            #     resolution = ["all"]
             cp_scenario = scenario # to avoid zipping scenario in the inner loop
 
             if resolution is False:
@@ -244,14 +217,6 @@ class ParsedConfig:
 
         # print(wildcards)
         return comb_func, wildcards
-
-    # def get_integrated_for_metrics(self, rules, method):
-    #     if method == "unintegrated":
-    #         return Path(rules.integration_prepare.output[0]).with_suffix(".h5ad")
-    #     elif self.get_from_method(method, "R"):
-    #         return rules.convert_RDS_h5ad.output
-    #     else:
-    #         return rules.integration_run_python.output
 
 
     def get_peak_option_for_feature_engineering(self, wildcards):
