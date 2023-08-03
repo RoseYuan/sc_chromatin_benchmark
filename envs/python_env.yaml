@@ -1,0 +1,13 @@
+name: scATAC-benchmark
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - anaconda
+dependencies:
+  - python=3.10
+  - snaptools
+  - snakemake>=7.24
+  - pip
+  - pip:
+    - snapatac2==2.2.0
