@@ -1,6 +1,0 @@
-linters: with_defaults(
-  object_usage_linter = NULL,
-  line_length_linter = line_length_linter(200),
-  no_tab_linter = NULL,
-  commented_code_linter = NULL)
-
