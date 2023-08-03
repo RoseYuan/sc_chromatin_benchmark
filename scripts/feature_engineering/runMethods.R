@@ -21,7 +21,6 @@ option_list <- list(
 	make_option(c("-f", "--feature_output"), type="character", default=NA, help="output file for feature matrix"),
 	
 	# parameters for features
-	make_option(c("-d", "--distance"), type="character", default=NA, help="distance metric name"),
 	make_option(c("-t", "--feature_type"), type="character", default=NA, help="feature type"),
 	make_option(c("-l", "--tile_size"), type="double", default=NA, help="Tile/bin size for ArchR/SnapATAC1,2 method"),
 	make_option(c("-r", "--resolutions"), type="character", default="0.2,0.6,0.8", help="Resolution list for iterativeLSI in ArchR method"),
