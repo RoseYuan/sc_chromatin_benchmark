@@ -1,0 +1,84 @@
+ROOT: /home/outputs # edit it
+py_env : scATAC-benchmark
+reticulate_py: NA # edit it
+MACS2_PATH: <path-to-conda>/envs/scATAC-benchmark/bin/macs2 # edit it
+
+FEATURE_SELECTION:
+  ndim:
+   - 15
+   - 30
+  cutoff: 0.75
+
+GRAPH_CONSTRUCTION:
+  use_umap: false
+  k_umap: 20
+  
+
+METHODS:
+
+# R methods
+ Signac:
+   R: true
+   feature_type:
+     - all_cell_peaks
+     - by_cluster_peaks
+   peak_filtering: true
+
+ ArchR:
+   R: true
+   feature_type:
+     - tiles
+     - peaks
+   peak_filtering: false
+   tile_size:
+     - 500
+
+ SnapATAC1:
+   R: true
+   feature_type:
+     - default
+   peak_filtering: false
+   tile_size:
+      - 5000
+
+ aggregation:
+   R: true
+   feature_type:
+    - default
+   peak_filtering: false
+   n_meta_features: 1000
+   n_cells: 22000
+   norm_method: tfidf
+   reduce: pca
+   feature_method: signac_cluster
+   tile_size:
+     - 500
+
+# Python methods
+ SnapATAC2:
+   R: false
+   feature_type:
+    - default
+   distance:
+    - jaccard
+    - cosine
+   peak_filtering: false
+   tile_size:
+     - 500
+
+DATA_SCENARIOS:
+  test_data:
+    file: /Downloads/test_data/pooled_fragments_sorted.bed.gz # Edit it
+    genome: hg38
+    seed:
+     - 0
+     - 2
+    resolution:
+     - 0.1
+     - 0.2
+    min_width: 20
+    max_width: 10000
+    iter_resolution: 0.05,0.1,0.2
+    label_table_file: /Downloads/test_data/cell_type_annotation.tsv # Edit it
+    barcode_col: long_barcode
+    label_col: cell_type
