@@ -33,6 +33,7 @@ conda env create -f python_env.yml
 ### Download the test data<a name="download"></a>
 A small test dataset is provided and can be used to test the installation and the pipeline. To download and decompress it:
 ```commandline
+wget https://zenodo.org/record/8212920/files/test_data.tar.gz
 
 tar -xzvf test_data.tar.gz
 ```
@@ -141,7 +142,7 @@ snakemake --configfile configs/test_data.yaml --cores 2
 ```
 ## Resources<a name="Resources"></a>
 ### Datasets<a name="Datasets"></a>
-- The data used in the study is deposited [here]() on Zenodo.
+- The data used in the study is deposited [here](https://zenodo.org/record/8212920) on Zenodo.
 ### Result files<a name="results"></a>
 - All the intermediate results, including xxx is deposited on xxx. # TODO
 ### Code and files for reproducibility<a name="reproducibility"></a>
