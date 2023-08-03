@@ -130,8 +130,8 @@ To execute these jobs with 2 cores, call
 ```commandline
 snakemake --configfile configs/test_data.yaml --cores 2
 ```
-## Resources
-### Datasets
+## Resources<a name="Resources"></a>
+### Datasets<a name="Datasets"></a>
 - The data used in the study is deposited on xxx.
 ### Result files<a name="results"></a>
 - All the intermediate results, including xxx is deposited on xxx.
