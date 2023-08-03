@@ -2,8 +2,9 @@
 
 This repository contains the snakemake pipeline for our benchmarking study on scATAC-seq data analysis methods. In this study, we benchmark 8 data processing pipelines from 5 recent methods. The evaluation is performed at various stages of the typical data processing workflow, using 10 metrics. This pipeline allows for reproducible and automated analysis of different methods using different datasets.
 
-![Workflow](./Fig1.png)
+![Workflow](./Fig1.png =100x70)
 
+*** 
 - [Setup the environments](#setup)
   - [R environment](#r)
   - [Python environment](#conda)
