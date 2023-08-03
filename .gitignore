@@ -69,7 +69,7 @@ std_output/
 test.R
 # std output
 std_output*
-*.pdf
+#*.pdf
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
