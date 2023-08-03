@@ -1,5 +1,9 @@
 # Snakemake workflow to benchmark computational methods for single-cell chromatin data analysis
 
+This repository contains the snakemake pipeline for our benchmarking study on scATAC-seq data analysis methods. In this study, we benchmark 8 data processing pipelines from 5 recent methods. The evaluation is performed at various stages of the typical data processing workflow, using 10 metrics. This pipeline allows for reproducible and automated analysis of different methods using different datasets.
+
+![Workflow](./Fig1.pdf)
+
 - [Setup the environments](#setup)
   - [R environment](#r)
   - [Python environment](#conda)
@@ -15,7 +19,7 @@
 *** 
 
 ## Setup the environments<a name="setup"></a>
-We recommend to install all R packages in R instead of using conda. For python environment we give instructions to use conda.
+We recommend to install all R packages in R instead of using conda. For python environment, we give instructions to use conda.
 ### R environment<a name="r"></a>
 The current code was implemented using R v4.2.3 and Bioconductor v3.16. R>=4.2 and Bioconductor >=3.16 is strongly recommended to avoid error by package `GenomeInfoDb`. All R dependencies (from GitHub, CRAN and Bioconductor) are listed under `envs/install_r_env.R` and may be installed using the command contained there.
 ### Python environment<a name="conda"></a>
