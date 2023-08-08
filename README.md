@@ -5,17 +5,18 @@ This repository contains the snakemake pipeline for our benchmarking study on sc
 ![Workflow](./Fig1.2.png)
 
 *** 
-- [Setup the environments](#setup)
-  - [R environment](#r)
-  - [Python environment](#conda)
-- [Running the Pipeline](#running)
-  - [Download the test data](#download)
-  - [Prepare Configuration File](#config)
-  - [Pipeline Commands](#commands)
-- [Resources](#Resources)
-  - [Datasets](#Datasets)
-  - [Result files](#results)
-  - [Code and files for reproducibility](#reproducibility)
+- [Setup the environments](#setup-the-environments)
+  - [R environment](#r-environment)
+  - [Python environment](#python-environment)
+- [Running the Pipeline](#running-the-pipeline)
+  - [Download the test data](#download-the-test-data)
+  - [Prepare Configuration File](#prepare-configuration-file)
+  - [Pipeline Commands](#pipeline-commands)
+- [Resources](#resources)
+  - [Datasets](#datasets)
+  - [Result files](#result-files)
+  - [Code and files for reproducibility](#code-and-files-for-reproducibility)
+- [Publication](#publication)
 
 *** 
 
@@ -147,3 +148,6 @@ snakemake --configfile configs/test_data.yaml --cores 2
 - All the intermediate results, including xxx is deposited on xxx. # TODO
 ### Code and files for reproducibility<a name="reproducibility"></a>
 - The code and files to reproduce the analysis and visualization in our manuscript is available at the repository: [benchmark_paper](https://github.com/RoseYuan/benchmark_paper/tree/master).
+
+## Publication
+Preprint: https://doi.org/10.1101/2023.08.04.552046
