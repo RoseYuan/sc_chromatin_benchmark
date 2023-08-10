@@ -178,25 +178,6 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome,  min_width, 
 
 	sobj[["first_round_clusters"]] <- sobj$seurat_clusters
 
-	##################################
-	## using leiden in r-igraph
-	# sce <- as.SingleCellExperiment(sobj)
-	# graph <- scran::buildSNNGraph(x = sce, use.dimred = "LSI_ALL_CELL_PEAKS", k=20,
-	# 							  type = "jaccard")
-	# sobj <- PrepareGraph(sobj, reduction="lsi_all_cell_peaks",
-	# 				components=components, 
-	# 				graph.name.ls=c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim)), 
-	# 				igraph.name=paste0("igraph_snn_ndim", ndim))
-
-	# graph <- sobj@misc[[paste0("igraph_snn_ndim", ndim)]]
-    # cluster_leiden <- factor(igraph::cluster_leiden(graph, 
-	# 												objective_function = "modularity",
-    #                                     			resolution_parameter = 0.8, 
-    #                                     			n_iterations =10)$membership)
-
-	# sobj[["first_round_clusters"]] <- cluster_leiden
-
-	##################################
 
 	# peak calling
 	peaks <- peakCallingSignac(sobj, macs2_path, genome, min_width, max_width, group_by = "first_round_clusters")
