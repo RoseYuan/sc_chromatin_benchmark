@@ -25,10 +25,6 @@ option_list <- list(
     
     # parameters for SNN
     make_option(c("-n", "--ndim"), type="double", default=100, help="number of dimensions for the embedding"),
-    
-    # parameters for the merged fuzzy simplical set approach
-    make_option(c("-u", "--use_umap"), type="character", default=FALSE, help="If use uwot::similarity_graph to build the similarity graph or not. If not, use SNN graph in Seurat."),
-    make_option(c("-k", "--k_umap"), type="double", default=10, help="Number of neighbors used in UMAP graph construction."),
 
     # parameters for clustering
 	make_option(c("-r", "--resolution"), type="double", default=0.2, help="Resolution for clustering"),
@@ -76,13 +72,6 @@ if (opt$prepare) {
 
     saveRDS(sobj, opt$output)
 } else {
-    
-    if (is.element(opt$use_umap, c("true", "True", "TRUE", "T"))) {
-	use_umap <- TRUE
-    } else {
-        use_umap <- FALSE
-        }
-
     sobj <- readRDS(opt$output)
     if (opt$use_seurat) {
         if (!is.na(opt$python)) {
@@ -92,38 +81,16 @@ if (opt$prepare) {
             }
         }
 
-    if (!use_umap) {
-        sobj <- FindClusters(object = sobj, 
-                        verbose = FALSE, 
-                        algorithm = opt$algorithm,
-                        resolution = opt$resolution,
-                        graph.name = paste0("snn_ndim", opt$ndim),
-                        random.seed = opt$seed
-                    )
-    } else {
-        embed <- Embeddings(Reductions(sobj, "learned_embedding"))
-        g <- sobj@graphs[[paste0("snn_ndim", opt$ndim)]]
-        sim_graph_adj <- uwot::similarity_graph(embed, n_neighbors = opt$k_umap)
-        colnames(sim_graph_adj) <- colnames(g)
-        rownames(sim_graph_adj) <- rownames(g)
-        sobj@graphs[[paste0("umap_graph_k",opt$k_umap)]] <- as.Graph(sim_graph_adj)
-
-        sobj <- FindClusters(object = sobj, 
-                verbose = FALSE, 
-                algorithm = opt$algorithm,
-                resolution = opt$resolution,
-                graph.name = paste0("umap_graph_k",opt$k_umap),
-                random.seed = opt$seed
-            )
-    }
+    sobj <- FindClusters(object = sobj, 
+                    verbose = FALSE, 
+                    algorithm = opt$algorithm,
+                    resolution = opt$resolution,
+                    graph.name = paste0("snn_ndim", opt$ndim),
+                    random.seed = opt$seed
+                )
+    
         df_label <- data.frame(sobj$seurat_clusters)
     } else {
-        # sce <- as.SingleCellExperiment(snare)
-        # graph <- scran::buildSNNGraph(x = sce, use.dimred = "learned_embedding")
-        # cluster_leiden <- factor(igraph::cluster_leiden(graph, 
-        #                                                 objective_function = "CPM", 
-        #                                                 resolution_parameter = opt$resolution, 
-        #                                                 n_iterations =3)$membership)
         sobj <- PrepareGraph(sobj, reduction="learned_embedding",
 						graph.name.ls=c(paste0("nn_ndim", opt$ndim), paste0("snn_ndim", opt$ndim)), 
 						igraph.name=paste0("igraph_snn_ndim", opt$ndim))

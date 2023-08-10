@@ -55,9 +55,6 @@ FEATURE_SELECTION:
    - 30
   cutoff: 0.75 # cutoff of correlation between depth and latent dimensions. dimensions with correlation larger than this value is discarded. 
 
-GRAPH_CONSTRUCTION:
-  use_umap: false
-  k_umap: 20
   
 METHODS:
 # Possible keys are:

@@ -47,35 +47,3 @@ add_embedding <- function(sobj, embedding_file, embed_name="learned_embedding", 
     return(sobj)
 }
 
-
-# # function to do clustering using given parameters
-# signac_do_clustering <- function(sobj, r, ndim, key, clustering=4){
-#     graph_name <- paste0("snn_ndim", ndim)
-
-#     if (is.null(sobj@graphs[[graph_name]])) {
-#         sobj <- FindNeighbors(object = sobj, 
-#                               reduction = "learned_embedding", 
-#                               dims = 1:ndim,
-#                               graph.name = c(paste0("nn_ndim", ndim), paste0("snn_ndim", ndim))
-#                             )
-#     }
-
-#     sobj <- FindClusters(object = sobj, 
-#                          verbose = FALSE, 
-#                          algorithm = clustering,
-#                          resolution = r,
-#                          graph.name = paste0("snn_ndim", n)
-#                         )
-
-#     sobj[[paste0("clusters_ndim",ndim,"_r",r)]] <- sobj$seurat_clusters
-#     return(sobj)
-# }
-
-
-# # function to calculate UMAP from a specific embeddings, visualize it and colored by labels
-# sobj <- Signac::RunUMAP(sobj, 
-#                 reduction = embedding_name,
-#                 dims = 1:ndim)
-
-
-

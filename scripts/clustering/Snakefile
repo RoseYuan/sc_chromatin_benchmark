@@ -90,23 +90,19 @@ rule clustering_run:
         Run clustering using resolution {wildcards.resolution}, random seed {wildcards.seed}.
         dataset: {wildcards.scenario}
         command: {params.cmd}
-        use umap or not (snn): {params.use_umap}
         feature engineering method: {wildcards.method}, {wildcards.feature_type}, {wildcards.distance}, {wildcards.tile_size}
         ndim: {wildcards.ndim}
         """
     params:
         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
-        reticulate_py = {cfg.reticulate_py},
-        use_umap = lambda w: cfg.get_graph_construction(key="use_umap"),
-        k_umap = lambda w: cfg.get_graph_construction(key="k_umap")
+        reticulate_py = {cfg.reticulate_py}
     benchmark:
         str(cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}_clustering.benchmark")
     shell:
         """
         {params.cmd} scripts/clustering/do_clustering.R -o {input.rds} \
             -c {output.df}  \
-            -n {wildcards.ndim} -r {wildcards.resolution} -v {wildcards.seed} --use_seurat -q {params.reticulate_py}  \
-            -u {params.use_umap} -k {params.k_umap}
+            -n {wildcards.ndim} -r {wildcards.resolution} -v {wildcards.seed} --use_seurat -q {params.reticulate_py}
         """
 
 rule clustering_r:
