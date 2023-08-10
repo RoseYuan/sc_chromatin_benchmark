@@ -206,9 +206,9 @@ lisi_result <- function(x, meta_data, label_colname, perplexity = 30, nn_eps = 0
 #graph-level metrics
 #######################################
 
-# compute comminity strength/graph connectivity
+# compute comminity strength/graph connectivity/PWC
 # graph: the whole SNN graph; label_idx: the index of the label of the community to compute
-community_strength <- function(graph, label, label_idx){
+pwc <- function(graph, label, label_idx){
   suppressPackageStartupMessages({
     require(igraph)
   })
@@ -254,40 +254,52 @@ graph_from_sobj <- function(sobj, graph_name, embedding_name="learned_embedding"
   }
 }
 
-avg_community_strength <- function(sobj, label, embedding_name="learned_embedding", n_neighbors=20){
-
+avg_pwc <- function(sobj, label, embedding_name="learned_embedding", n_neighbors=20, knn=TRUE, umap=TRUE){
   label_ls <- unique(label)
+  avg_knn <- NA
+  avg_umap <- NA
+  df_knn <- NA
+  df_umap <- NA
 
-  # compute the community strength for KNN graph
-  name <- names(sobj)[startsWith(names(sobj), "nn_ndim")][1]
-  knn_g <- graph_from_sobj(sobj, name, embedding_name=embedding_name, n_neighbors=n_neighbors)
-  df_knn <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
-  for(c in 1:length(label_ls)){
-    res <- community_strength(knn_g, label, label_idx=c)
-    df_knn <- rbind(df_knn, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
-  }
   # compute the community strength for SNN graph
   name <- names(sobj)[startsWith(names(sobj), "snn_ndim")][1]
   snn_g <- graph_from_sobj(sobj, name, embedding_name=embedding_name, n_neighbors=n_neighbors)
   df_snn <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
   for(c in 1:length(label_ls)){
-    res <- community_strength(snn_g, label, label_idx=c)
+    res <- pwc(snn_g, label, label_idx=c)
     df_snn <- rbind(df_snn, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
   }
-  # compute the community strength for umap similarity graph
-  umap_g <- graph_from_sobj(sobj, "umap", embedding_name=embedding_name, n_neighbors=n_neighbors)
-  df_umap <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
-  for(c in 1:length(label_ls)){
-    res <- community_strength(umap_g, label, label_idx=c)
-    df_umap <- rbind(df_umap, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
+  # calculate the average
+  avg_snn <- mean(df_snn$weak_frac)
+
+  ##################
+  # compute the community strength for KNN graph
+  if(knn){
+    name <- names(sobj)[startsWith(names(sobj), "nn_ndim")][1]
+    knn_g <- graph_from_sobj(sobj, name, embedding_name=embedding_name, n_neighbors=n_neighbors)
+    df_knn <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
+    for(c in 1:length(label_ls)){
+      res <- pwc(knn_g, label, label_idx=c)
+      df_knn <- rbind(df_knn, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
+    }
+    # calculate the average
+    avg_knn <- mean(df_knn$weak_frac)
   }
 
-  # calculate the average
-  avg_knn <- mean(df_knn$weak_frac)
-  avg_snn <- mean(df_snn$weak_frac)
-  avg_umap <- mean(df_umap$weak_frac)
+  ##################
+  # compute the community strength for umap similarity graph
+  if(umap){
+    umap_g <- graph_from_sobj(sobj, "umap", embedding_name=embedding_name, n_neighbors=n_neighbors)
+    df_umap <- data.frame(cell_type=c(), weak_cells=c(), weak_frac=c())
+    for(c in 1:length(label_ls)){
+      res <- pwc(umap_g, label, label_idx=c)
+      df_umap <- rbind(df_umap, list(cell_type=label_ls[c], weak_cells=res$j1, weak_frac=res$j1_frac))
+    }
+    # calculate the average
+    avg_umap <- mean(df_umap$weak_frac)
+  }
 
-  return(list(avg_knn=avg_knn, avg_snn=avg_snn, avg_umap=avg_umap, df_knn=df_knn, df_snn=df_snn,df_umap=df_umap))
+  return(list(avg_knn=avg_knn, avg_snn=avg_snn, avg_umap=avg_umap, df_knn=df_knn, df_snn=df_snn, df_umap=df_umap))
 }
 
 #######################################
@@ -409,7 +421,7 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   embed <- Embeddings(Reductions(sobj, embedding_name))
   if (is.null(metrics)){
       metrics <- c("Silhouette_label", "cLISI_label", "log_geary_c_knn", "log_geary_c_snn", 
-      "log_geary_c_sim_graph", "avg_connectivity_knn", "avg_connectivity_snn", "avg_connectivity_umap") 
+      "log_geary_c_sim_graph", "avg_pwc_knn", "avg_pwc_snn", "avg_pwc_umap") 
   }
   df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
   colnames(df_metric) <- c("metric", "value")
@@ -442,34 +454,16 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   df_metric["log_geary_c_snn", "value"] <- res_geary_c[["log_geary_c_snn"]]
   df_metric["log_geary_c_sim_graph", "value"] <- res_geary_c[["log_geary_c_sim_graph"]]
 
-  # calculating the graph connectivity
-  res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20, embedding_name=embedding_name)
-  df_metric["avg_connectivity_knn", "value"] <- res_cs[["avg_knn"]]
-  df_metric["avg_connectivity_snn", "value"] <- res_cs[["avg_snn"]]
-  df_metric["avg_connectivity_umap", "value"] <- res_cs[["avg_umap"]]
+  # calculating the graph connectivity (PWC)
+  res_cs <- avg_pwc(sobj, true_labels, n_neighbors=20, embedding_name=embedding_name)
+  df_metric["avg_pwc_knn", "value"] <- res_cs[["avg_knn"]]
+  df_metric["avg_pwc_snn", "value"] <- res_cs[["avg_snn"]]
+  df_metric["avg_pwc_umap", "value"] <- res_cs[["avg_umap"]]
 
   print(df_metric)
-  return(list(metrics=df_metric, sil=re2, lisi=re4, connectivity=res_cs))
+  return(list(metrics=df_metric, sil=re2, lisi=re4, pwc=res_cs))
 }
 
-# evaluation_latent_sub <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
-#   embed <- Embeddings(Reductions(sobj, embedding_name))
-#   if (is.null(metrics)){
-#       metrics <- c("avg_connectivity_knn", "avg_connectivity_snn") 
-#   }
-#   df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
-#   colnames(df_metric) <- c("metric", "value")
-#   df_metric$metric <- metrics
-#   rownames(df_metric) <- df_metric$metric
-
-#   # calculating the graph connectivity
-#   res_cs <- avg_community_strength(sobj, true_labels, n_neighbors=20, embedding_name=embedding_name)
-#   df_metric["avg_connectivity_knn", "value"] <- res_cs[["avg_knn"]]
-#   df_metric["avg_connectivity_snn", "value"] <- res_cs[["avg_snn"]]
-
-#   print(df_metric)
-#   return(list(metrics=df_metric, connectivity=res_cs))
-# }
 
 #######################################
 #The main function to evaluate clustering results
