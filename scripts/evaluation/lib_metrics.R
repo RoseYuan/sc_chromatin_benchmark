@@ -254,7 +254,7 @@ graph_from_sobj <- function(sobj, graph_name, embedding_name="learned_embedding"
   }
 }
 
-avg_pwc <- function(sobj, label, embedding_name="learned_embedding", n_neighbors=20, knn=TRUE, umap=TRUE){
+avg_pwc <- function(sobj, label, embedding_name="learned_embedding", n_neighbors=20, knn=FALSE, umap=FALSE){
   label_ls <- unique(label)
   avg_knn <- NA
   avg_umap <- NA
@@ -362,17 +362,7 @@ cal_geary_c <- function(sobj, k=20, embedding_name="learned_embedding", n_neighb
   log_counts <- log(sobj[[col]])
   # calculate Geary C index for KNN graph
   c_knn <- log(geary_c(log_counts, col, embed=embed, graph=NULL, k=k))
-
-  # calculate Geary C index for SNN graph
-  snn_g <- sobj@graphs[[names(sobj)[startsWith(names(sobj), "snn_ndim")][1]]]
-  c_snn <- log(geary_c(log_counts, col, embed=NULL, graph=snn_g))
-
-  # calculate Geary C index for similarity graph using merged fuzzy simplicial set approach
-  sim_graph_adj <- uwot::similarity_graph(embed, n_neighbors = n_neighbors)
-  colnames(sim_graph_adj) <- colnames(snn_g)
-  rownames(sim_graph_adj) <- rownames(snn_g)
-  c_sim_graph <- log(geary_c(log_counts, col, embed=NULL, graph=sim_graph_adj))
-  return(list(log_geary_c_knn=c_knn, log_geary_c_snn=c_snn, log_geary_c_sim_graph=c_sim_graph))
+  return(list(log_geary_c_knn=c_knn))
 }
 
 #######################################
@@ -420,8 +410,7 @@ eveness <- function(clusterings, a=1, b=0){
 evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
   embed <- Embeddings(Reductions(sobj, embedding_name))
   if (is.null(metrics)){
-      metrics <- c("Silhouette_label", "cLISI_label", "log_geary_c_knn", "log_geary_c_snn", 
-      "log_geary_c_sim_graph", "avg_pwc_knn", "avg_pwc_snn", "avg_pwc_umap") 
+      metrics <- c("Silhouette_label", "cLISI_label", "log_geary_c_knn", "avg_pwc_snn") 
   }
   df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
   colnames(df_metric) <- c("metric", "value")
@@ -449,16 +438,13 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
 
   # calculating Geary C index
   res_geary_c <- cal_geary_c(sobj, k=20, embedding_name=embedding_name, n_neighbors = 20)
-
   df_metric["log_geary_c_knn", "value"] <- res_geary_c[["log_geary_c_knn"]]
-  df_metric["log_geary_c_snn", "value"] <- res_geary_c[["log_geary_c_snn"]]
-  df_metric["log_geary_c_sim_graph", "value"] <- res_geary_c[["log_geary_c_sim_graph"]]
 
   # calculating the graph connectivity (PWC)
   res_cs <- avg_pwc(sobj, true_labels, n_neighbors=20, embedding_name=embedding_name)
-  df_metric["avg_pwc_knn", "value"] <- res_cs[["avg_knn"]]
+  # df_metric["avg_pwc_knn", "value"] <- res_cs[["avg_knn"]]
   df_metric["avg_pwc_snn", "value"] <- res_cs[["avg_snn"]]
-  df_metric["avg_pwc_umap", "value"] <- res_cs[["avg_umap"]]
+  # df_metric["avg_pwc_umap", "value"] <- res_cs[["avg_umap"]]
 
   print(df_metric)
   return(list(metrics=df_metric, sil=re2, lisi=re4, pwc=res_cs))
