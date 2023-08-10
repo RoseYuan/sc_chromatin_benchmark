@@ -8,7 +8,7 @@ This repository contains the snakemake pipeline for our benchmarking study on sc
 - [Setup the environments](#setup-the-environments)
   - [R environment](#r-environment)
   - [Python environment](#python-environment)
-- [Running the Pipeline](#running-the-pipeline)
+- [Run the Pipeline](#running-the-pipeline)
   - [Download the test data](#download-the-test-data)
   - [Prepare Configuration File](#prepare-configuration-file)
   - [Pipeline Commands](#pipeline-commands)
