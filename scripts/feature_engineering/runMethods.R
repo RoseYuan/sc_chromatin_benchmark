@@ -52,7 +52,7 @@ option_list <- list(
 # -p reserved for number of processes
 
 methods <- c("signac", "archr", "aggregation", "snapatac1", "snapatac2")
-feature_methods <- c("signac_all", "signac_cluster", "archr_tile", "archr_peak", "snapatac1", "snapatac2")
+feature_methods <- c("signac_all", "signac_cluster", "archr_tile", "archr_peak")
 feature_types <- list(
 	"signac" = c("all_cell_peaks", "by_cluster_peaks"),
 	"archr" = c("peaks", "tiles"),
@@ -275,16 +275,6 @@ if (tolower(opt$method) == "aggregation") {
 		mobj <- result_ls$Fmat
 		saveArchRProject(ArchRProj = sobj, load = FALSE)
 		setwd(root)
-	}
-	if (tolower(feature_method) == "snapatac1") {
-		check_tilesize_options()
-		params <- list(output = dirname(opt$output), 
-					genome = opt$genome, 
-					ndim = opt$ndim, 
-					binsize=opt$tile_size)
-	}
-	if (tolower(feature_method) == "snapatac2") {
-	params <- list()
 	}
 
 	if (!is.element(tolower(feature_method), c("archr_tile", "archr_peak"))){

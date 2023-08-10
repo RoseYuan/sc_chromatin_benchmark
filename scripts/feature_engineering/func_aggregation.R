@@ -1,5 +1,4 @@
 source("../feature_engineering/func_signac.R", chdir=TRUE)
-# devtools::load_all(path="../feature_engineering/scFeatAgg")
 # aggregate features
 # two-pass mode: useful for large datasets, first do feature clustering on a subset of cells,
 # then do feature clustering on meta-cells(over-clustered cells based on the meta-features) 
@@ -119,68 +118,6 @@ aggregate_features <- function(feature_matrix=NULL, dims, n_meta_features, n_cel
         return(Fmat_cap)
         } else {
             return(list(Fmat=Fmat_cap, Fgrp=feature_groups))
-            }
-}
-
-
-aggregate_features1 <- function(feature_matrix=NULL, dims, n_meta_features, n_cells, norm_function, reduce, sce=NULL){
-    suppressPackageStartupMessages({
-    require(SingleCellExperiment)
-    require(scDblFinder)
-    })
-    # feature_matrix: a cell-by-feature matrix
-    # first normalize feature_matrix using norm_function, then run PCA (reduce cell dim), then cluster features, 
-    # then log-normalize the meta-features, and (optionaly) lastly do dimensional reduction on meta-feature matrix
-    if (is.null(feature_matrix) & is.null(sce)){stop("Please specify the feature matrix or sce object as input!")}
-    if (is.null(sce)){
-        agg_counts <- scFeatAgg:::aggregateFeatures(
-        t(feature_matrix),
-        dims.use = dims,
-        k = n_meta_features,
-        num_init = 3,
-        use.subset = n_cells,
-        norm.fn=norm_function, 
-        twoPass=TRUE,
-        cell.clust="kmeans",
-        capEmbMADs=3,
-        use.mbk=TRUE)
-    } else {
-        sce_x <- scFeatAgg:::aggregateFeatures(
-        sce,
-        dims.use = dims,
-        k = n_meta_features,
-        num_init = 3,
-        use.subset = n_cells,
-        norm.fn=norm_function, 
-        twoPass=TRUE,
-        cell.clust="kmeans",
-        capEmbMADs=3,
-        use.mbk=TRUE)
-
-        agg_counts <- counts(sce_x)
-        feature_groups <- metadata(sce_x)$featureGroups
-    }
-
-    # create sce object
-    sce2 <- SingleCellExperiment(list(counts=agg_counts))
-    # normalize the meta-features
-    sce2 <- scuttle::logNormCounts(sce2)
-
-    if (reduce == "original") {
-        Fmat <- t(as.matrix(logcounts(sce2)))
-    }else if (reduce == "pca") {
-        pca <- scater::runPCA(t(logcounts(sce2)), center=TRUE, scale=TRUE, rank=100)
-        Fmat <- as.matrix(pca$x)
-    }else if (reduce == 'lsi') {
-        tf.idf <- RunTFIDF(object=t(as.matrix(logcounts(sce2))), method=1)
-        agg_lsi <- RunSVD(t(tf.idf), n = 100, scale.embeddings = TRUE)
-        Fmat <- agg_lsi
-    }else{stop("Please specify correct dimensional reduction method!")}
-
-    if (is.null(sce)){
-        return(Fmat)
-        } else {
-            return(list(Fmat=Fmat, Fgrp=feature_groups))
             }
 }
 
