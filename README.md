@@ -149,5 +149,5 @@ snakemake --configfile configs/test_data.yaml --cores 2
 ### Code and files for reproducibility<a name="reproducibility"></a>
 - The code and files to reproduce the analysis and visualization in our manuscript is available at the repository: [benchmark_paper](https://github.com/RoseYuan/benchmark_paper/tree/master).
 
-## Publication
+## Publication<a name="publication"></a>
 Preprint: https://doi.org/10.1101/2023.08.04.552046
