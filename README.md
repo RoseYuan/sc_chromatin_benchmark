@@ -25,9 +25,9 @@ We recommend to install all R packages in R instead of using conda. For python e
 ### R environment<a name="r"></a>
 The current code was implemented using R v4.2.3 and Bioconductor v3.16. R>=4.2 and Bioconductor >=3.16 is strongly recommended to avoid error from package `GenomeInfoDb`. All R dependencies (from GitHub, CRAN and Bioconductor) are listed under `envs/install_r_env.R` and may be installed using the command contained there.
 ### Python environment<a name="conda"></a>
-The conda environments are defined in `envs/python_env.yml` file. The command to install it is:
+The conda environments are defined in `envs/python_env.yaml` file. The command to install it is:
 ```commandline
-conda env create -f python_env.yml
+conda env create -f python_env.yaml
 ```
 ## Running the Pipeline<a name="running"></a>
 
