@@ -115,7 +115,7 @@ createSignacObj <- function(frags, peaks, genome, assay_type) {
 }
 
 
-runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max_width, nfeatures) {
+runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max_width, nfeatures=NULL) {
 	# create fragment objects
 	suppressPackageStartupMessages({
 	require(Signac)
@@ -145,9 +145,13 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max
 	sobj <- RunTFIDF(sobj,
 						  assay = "all_cell_peaks",
 						  method = 1)  # computes log(TF×IDF)
-    
-    qt <- round(100 - nfeatures/dim(sobj)[1]*100)
-    cutoff.string <- paste0("q", qt)
+
+    if(is.null(nfeatures)){
+        cutoff.string <- "q5"
+    }else{
+        qt <- round(100 - nfeatures/dim(sobj)[1]*100)
+        cutoff.string <- paste0("q", qt)
+    }
     
 	sobj <- FindTopFeatures(sobj,
 							min.cutoff = cutoff.string,
@@ -161,8 +165,8 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max
 	return(sobj)
 }
 
-runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome,  min_width, max_width){
-	sobj <- runSignac_AllCellPeaks(fragfiles, macs2_path, genome, min_width, max_width)
+runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome,  min_width, max_width, nfeatures=NULL){
+	sobj <- runSignac_AllCellPeaks(fragfiles, macs2_path, genome, min_width, max_width, nfeatures)
 	ndim <- 30 # use ndim=30 for clustering
 	components <- DepthCorComponentsSignac(sobj, corCutOff = 0.75,
 									assay_type="all_cell_peaks", n=ndim,
@@ -194,8 +198,12 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome,  min_width, 
 					 method = 1,
 					 assay = "by_cluster_peaks")
     
-    qt <- round(100 - nfeatures/dim(sobj)[1]*100)
-    cutoff.string <- paste0("q", qt)
+    if(is.null(nfeatures)){
+        cutoff.string <- "q5"
+    }else{
+        qt <- round(100 - nfeatures/dim(sobj)[1]*100)
+        cutoff.string <- paste0("q", qt)
+    }
     
 	sobj <- FindTopFeatures(sobj,
 							min.cutoff = cutoff.string,
