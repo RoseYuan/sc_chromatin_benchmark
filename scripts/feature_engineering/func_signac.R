@@ -115,7 +115,7 @@ createSignacObj <- function(frags, peaks, genome, assay_type) {
 }
 
 
-runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max_width) {
+runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max_width, nfeatures) {
 	# create fragment objects
 	suppressPackageStartupMessages({
 	require(Signac)
@@ -145,8 +145,12 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max
 	sobj <- RunTFIDF(sobj,
 						  assay = "all_cell_peaks",
 						  method = 1)  # computes log(TF×IDF)
+    
+    qt <- round(100 - nfeatures/dim(sobj)[1]*100)
+    cutoff.string <- paste0("q", qt)
+    
 	sobj <- FindTopFeatures(sobj,
-							min.cutoff = "q5",
+							min.cutoff = cutoff.string,
 							assay = "all_cell_peaks")
 	sobj <- RunSVD(sobj,
 						n = 100,
@@ -189,8 +193,12 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome,  min_width, 
 	sobj <- RunTFIDF(sobj,
 					 method = 1,
 					 assay = "by_cluster_peaks")
+    
+    qt <- round(100 - nfeatures/dim(sobj)[1]*100)
+    cutoff.string <- paste0("q", qt)
+    
 	sobj <- FindTopFeatures(sobj,
-							min.cutoff = "q5",
+							min.cutoff = cutoff.string,
 							assay = "by_cluster_peaks")
 	sobj <- RunSVD(sobj,
 					n = 100,
