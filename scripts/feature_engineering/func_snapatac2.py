@@ -3,7 +3,7 @@ import pandas as pd
 import os.path
 import numpy as np
 
-def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard', ndim=50, black_list=None):
+def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard', ndim=50, black_list=None, nfeatures=1000000):
     fragfile_list = fragfiles.split(",")
     dirname = os.path.dirname(output_file)
     h5ad_files = []
@@ -32,7 +32,7 @@ def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard',
     if black_list is None:
         black_list = black_list_y
 
-    snap.pp.select_features(data, min_cells=10, most_variable=1000000, blacklist=black_list)
+    snap.pp.select_features(data, min_cells=10, most_variable=nfeatures, blacklist=black_list)
 
     # dimensional reduction
     ## compute similarity matrix
