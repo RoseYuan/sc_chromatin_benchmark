@@ -150,7 +150,7 @@ loadSnapFile <- function(snapfile_list, sample.names){
     return(x.sp)
 }
 
-addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_rareness=0.05){
+addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_rareness=0.05, nfeatures=NULL){
     # Add cell-by-bin matrix
     x.sp <- addBmatToSnap(x.sp, bin.size=binsize)
 
@@ -181,13 +181,17 @@ addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_r
         col="lightblue", 
         xlim=c(0, 5)
     )
+    if(!is.null(nfeatures)){
+        th_rareness <- 1 - nfeatures/length(bin.cov[bin.cov > 0])
+    }
+    
     bin.cutoff = quantile(bin.cov[bin.cov > 0], 1-th_rareness)
     idy = which(bin.cov <= bin.cutoff & bin.cov > 0)
     x.sp = x.sp[, idy, mat="bmat"]
     return(x.sp)
 }
 
-runSnapATAC1 <- function(fragfiles, output, genome, scale=TRUE, ndim, genome_sizefile=NULL, black_list=NULL, binsize=5000, py_env=NULL){
+runSnapATAC1 <- function(fragfiles, output, genome, scale=TRUE, ndim, genome_sizefile=NULL, black_list=NULL, binsize=5000, py_env=NULL, nfeatures=NULL){
     suppressPackageStartupMessages({
     require(SnapATAC)
     require(GenomicRanges)})
@@ -228,7 +232,7 @@ runSnapATAC1 <- function(fragfiles, output, genome, scale=TRUE, ndim, genome_siz
     x.sp <- loadSnapFile(snapfile_list, sample.names)
     
     # Add cell-by-bin matrix and do feature selection
-    x.sp <- addRobustBinMatrix(x.sp, binsize, df_black_list, th_outlier=0.001, th_rareness=0.05)
+    x.sp <- addRobustBinMatrix(x.sp, binsize, df_black_list, th_outlier=0.001, th_rareness=0.05, nfeatures)
 
     # run diffusion maps without subsampling
     x.sp = runDiffusionMaps(
