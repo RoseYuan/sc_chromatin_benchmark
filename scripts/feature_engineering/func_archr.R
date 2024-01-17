@@ -60,11 +60,6 @@ runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSiz
 	    logFile = createLogFile("addTileMatrix")
 	)
 
-	n <- nCells(input = proj)
-	if (n < 10000){
-		nsample <- n
-	} else {nsample <- 10000}
-
 	proj <- addIterativeLSI(
 		ArchRProj = proj,
 	    useMatrix = "TileMatrix",
@@ -72,10 +67,12 @@ runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSiz
 	    iterations = n_iteration,
 	    clusterParams = list(
 		resolution = resolutions, 
-		sampleCells = nsample,
+		sampleCells = NULL,
 		n.start = 10,
 		algorithm = 3
 		),
+        sampleCellsPre = NULL,
+        sampleCellsFinal = NULL,
 	    varFeatures = 25000,
 	    dimsToUse = 1:ndim,
 	    scaleDims = TRUE,
@@ -118,11 +115,6 @@ runArchR_peaks <- function(fragfiles, output, genome, macs2_path, resolutions, n
 	# Redo LSI
 	n_iteration <- length(resolutions)
 
-	n <- nCells(input = proj)
-	if (n < 10000){
-		nsample <- n
-	} else {nsample <- 10000}
-
 	proj <- addIterativeLSI(
 	ArchRProj = proj,
 	useMatrix = "PeakMatrix",
@@ -130,10 +122,12 @@ runArchR_peaks <- function(fragfiles, output, genome, macs2_path, resolutions, n
 	iterations = n_iteration,
 	clusterParams = list( #See Seurat::FindClusters
 	resolution = resolutions,
-	sampleCells = nsample,
+	sampleCells = NULL,
 	n.start = 10,
 	algorithm = 3
 	),
+    sampleCellsPre = NULL,
+    sampleCellsFinal = NULL,
 	varFeatures = 25000,
 	dimsToUse = 1:ndim,
 	scaleDims = TRUE,
