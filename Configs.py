@@ -15,7 +15,7 @@ class ParsedConfig:
         self.DATA_SCENARIOS = config["DATA_SCENARIOS"]
         self.FEATURE_SELECTION = config["FEATURE_SELECTION"]
         self.METHODS = config["METHODS"]
-        self.GRAPH_CONSTRUCTION = config["GRAPH_CONSTRUCTION"]
+        # self.GRAPH_CONSTRUCTION = config["GRAPH_CONSTRUCTION"]
         self.r_env = config["r_env"]
         self.py_env = config["py_env"]
         self.MACS2_PATH = config["MACS2_PATH"]
