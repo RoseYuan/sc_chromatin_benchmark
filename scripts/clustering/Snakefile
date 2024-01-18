@@ -20,7 +20,7 @@ rule prepare_clustering: # add ground truth information, add embedding, calculat
     params:
         barcode_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="barcode_col"), 
         label_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="label_col"),
-        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript"
+        cmd     = "Rscript"
 
     shell:
         """
@@ -50,7 +50,7 @@ rule prepare_clustering: # add ground truth information, add embedding, calculat
 #     params:
 #         barcode_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="barcode_col"), 
 #         label_col = lambda wildcards: cfg.get_from_scenario(wildcards.scenario, key="label_col"),
-#         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript"
+#         cmd     = "Rscript"
 
 #     shell:
 #         """
@@ -94,7 +94,7 @@ rule clustering_run:
         ndim: {wildcards.ndim}
         """
     params:
-        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+        cmd     = "Rscript",
         reticulate_py = {cfg.reticulate_py}
     benchmark:
         str(cfg.ROOT / "{scenario}/clustering/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}_clustering.benchmark")
