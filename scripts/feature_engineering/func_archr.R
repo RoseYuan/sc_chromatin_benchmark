@@ -14,7 +14,7 @@ getFeatureMatrixArchR <- function(proj, embedding_name, ndim, corCutOff = 0.75) 
 }
 
 
-runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSize=500, nfeatures=25000){
+runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSize=500, nfeatures=NULL){
 	suppressPackageStartupMessages({
 		require(ArchR)
 		require(rhdf5)
@@ -59,7 +59,9 @@ runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSiz
 	    force = TRUE,
 	    logFile = createLogFile("addTileMatrix")
 	)
-
+    
+    if(is.null(nfeatures)){nfeatures <- 25000}
+    message(paste0("Number of features for iterative LSI in ArchR: ", nfeatures, "."))
 	proj <- addIterativeLSI(
 		ArchRProj = proj,
 	    useMatrix = "TileMatrix",
@@ -83,7 +85,7 @@ runArchR_tiles <- function(fragfiles, output, genome, resolutions, ndim, tileSiz
 	}
 
 
-runArchR_peaks <- function(fragfiles, output, genome, macs2_path, resolutions, ndim, tileSize=500, nfeatures=25000){
+runArchR_peaks <- function(fragfiles, output, genome, macs2_path, resolutions, ndim, tileSize=500, nfeatures=NULL){
 	proj <- runArchR_tiles(fragfiles, output, genome, resolutions, ndim, tileSize, nfeatures)
 
 	# Clustering
@@ -114,7 +116,10 @@ runArchR_peaks <- function(fragfiles, output, genome, macs2_path, resolutions, n
 
 	# Redo LSI
 	n_iteration <- length(resolutions)
-
+    
+    if(is.null(nfeatures)){nfeatures <- 25000}
+    message(paste0("Number of features for iterative LSI in ArchR: ", nfeatures, "."))
+    
 	proj <- addIterativeLSI(
 	ArchRProj = proj,
 	useMatrix = "PeakMatrix",

@@ -152,7 +152,7 @@ runSignac_AllCellPeaks <- function(fragfiles, macs2_path, genome, min_width, max
         qt <- round(100 - nfeatures/dim(sobj)[1]*100)
         cutoff.string <- paste0("q", qt)
     }
-    
+    message(paste0("Number of features for Signac: ", nfeatures, ", using threshold: ", cutoff.string, "."))
 	sobj <- FindTopFeatures(sobj,
 							min.cutoff = cutoff.string,
 							assay = "all_cell_peaks")
@@ -204,7 +204,7 @@ runSignac_ByClusterPeaks <- function(fragfiles, macs2_path, genome,  min_width, 
         qt <- round(100 - nfeatures/dim(sobj)[1]*100)
         cutoff.string <- paste0("q", qt)
     }
-    
+    message(paste0("Number of features for Signac: ", nfeatures, ", using threshold: ", cutoff.string, "."))
 	sobj <- FindTopFeatures(sobj,
 							min.cutoff = cutoff.string,
 							assay = "by_cluster_peaks")

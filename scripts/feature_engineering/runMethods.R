@@ -33,6 +33,7 @@ option_list <- list(
 	# parameters for preprocessing
 	make_option(c("-c", "--cutoff"), type="double", default=0.75, help="cutoff for correlation with depth"),
 	make_option(c("-n", "--ndim"), type="double", default=100, help="number of dimensions for the embedding"),
+    make_option(c("-w", "--nfeatures"), type="double", default=NULL, help="number of features used for dimensional reduction"), # NULL: use the default of each method
 	
 	## parameters for aggregation method
 	make_option(c("-k", "--n_meta_features"), type="double", default=1000, help="number of meta-features"),
@@ -123,7 +124,8 @@ if (tolower(opt$method) == "signac") {
 							macs2_path=opt$macs2_path,
 							genome=opt$genome,
 							min_width=opt$min_width,
-							max_width=opt$max_width)
+							max_width=opt$max_width,
+                            nfeatures=opt$nfeatures)
 		mobj <- getFeatureMatrixSignac(sobj,
 									embedding_name="lsi_all_cell_peaks",
 									assay = "all_cell_peaks",
@@ -134,7 +136,8 @@ if (tolower(opt$method) == "signac") {
 									 macs2_path=opt$macs2_path,
 									genome=opt$genome,
 									min_width=opt$min_width,
-									max_width=opt$max_width)
+									max_width=opt$max_width,
+                                    nfeatures=opt$nfeatures)
 		mobj <- getFeatureMatrixSignac(sobj,
 								   embedding_name="lsi_by_cluster_peaks",
 								   assay = "by_cluster_peaks",
@@ -159,7 +162,8 @@ if (tolower(opt$method) == "archr") {
 							   genome=opt$genome,
 							   resolutions=resolutions,
 							   ndim=opt$ndim,
-							   tileSize=opt$tile_size)
+							   tileSize=opt$tile_size,
+                                nfeatures=opt$nfeatures)
 		mobj <- getFeatureMatrixArchR(sobj,
 									  paste0("IterativeLSI_ndim",opt$ndim),
 									  opt$ndim,
@@ -172,7 +176,8 @@ if (tolower(opt$method) == "archr") {
                                macs2_path=opt$macs2_path,
 							   resolutions=resolutions,
 							   ndim=opt$ndim,
-							   tileSize=opt$tile_size)
+							   tileSize=opt$tile_size,
+                               nfeatures=opt$nfeatures)
 		mobj <- getFeatureMatrixArchR(sobj,
 									  paste0("IterativeLSI_peaks_ndim",opt$ndim),
 									  opt$ndim,
@@ -189,7 +194,8 @@ if (tolower(opt$method) == "snapatac1") {
 						 genome = opt$genome, 
 						 ndim = opt$ndim, 
 						 binsize=opt$tile_size,
-						 py_env = opt$py_env)
+						 py_env = opt$py_env,
+                         nfeatures=opt$nfeatures)
 	
 	mobj <- getFeatureMatrixSnapATAC(sobj, corCutOff= opt$cutoff, n = opt$ndim) #sed -i 's/+/:/' 100.tsv
 }
@@ -208,7 +214,8 @@ if (tolower(opt$method) == "aggregation") {
 					genome=opt$genome,
 					min_width=opt$min_width,
 					max_width=opt$max_width,
-					sobj_file=opt$sobj_file)
+					sobj_file=opt$sobj_file,
+                    nfeatures=opt$nfeatures)
 	}
 	if (tolower(feature_method) == "archr_tile") {
 		check_tilesize_options()

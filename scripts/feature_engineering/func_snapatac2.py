@@ -31,7 +31,7 @@ def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard',
 
     if black_list is None:
         black_list = black_list_y
-
+    print("The number of features used: " + nfeatures + ".")
     snap.pp.select_features(data, min_cells=10, most_variable=nfeatures, blacklist=black_list)
 
     # dimensional reduction

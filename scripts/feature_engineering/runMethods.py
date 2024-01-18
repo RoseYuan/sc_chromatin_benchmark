@@ -13,6 +13,7 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--genome", help="Genome name.", type=str)
     parser.add_argument("-d", "--distance", help="Distance metric to use.", type=str)
     parser.add_argument("-l", "--tile_size", help="Tile/bin size for calculating the count matrix.", type=int)
+    parser.add_argument("-w", "--nfeatures", help="Number of features used in feature selection.", type=int, default=1000000)
     args = parser.parse_args()
 
     fragfiles = args.input_fragfile_list
@@ -23,6 +24,7 @@ if __name__ == "__main__":
     distance = args.distance
     method = args.method
     feature_type = args.feature_type
+    nfeatures = args.nfeatures
 
     ndim = args.ndim
 
@@ -33,6 +35,7 @@ if __name__ == "__main__":
                              tile_size=tile_size,
                              genome=genome,
                              distance=distance,
-                             ndim=ndim)
+                             ndim=ndim,
+                             nfeatures=nfeatures)
 
         mobj.to_csv(matrix_file, sep='\t',header=False)

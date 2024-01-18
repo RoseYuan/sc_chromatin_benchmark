@@ -53,6 +53,11 @@ class ParsedConfig:
         value = self.FEATURE_SELECTION[key]
         if key == 'ndim':
             return value if isinstance(value, list) else [value]
+        if key == "nfeatures":
+            if value:
+                return f"-w {value}"
+            else:
+                return ""
         return value
     
     def get_graph_construction(self, key):

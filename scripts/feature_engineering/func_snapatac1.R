@@ -181,6 +181,8 @@ addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_r
         col="lightblue", 
         xlim=c(0, 5)
     )
+    message(paste0("Number of features for SnapATAC: ", nfeatures, ", using threshold: ", th_rareness, "."))
+    
     if(!is.null(nfeatures)){
         th_rareness <- 1 - nfeatures/length(bin.cov[bin.cov > 0])
     }
