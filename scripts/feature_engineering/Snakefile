@@ -59,7 +59,8 @@ rule feature_engineering_run_r:
 #         aggregation = cfg.get_agg_option,
 #         cutoff  = lambda w: cfg.get_feature_selection(key="cutoff"),
 #         genome  = lambda w: cfg.get_from_scenario(w.scenario, key="genome"),
-#         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+#         # cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+#         cmd     = "Rscript",
 #         # cmd     = f"conda activate {cfg.r_env}",
 #     benchmark:
 #         # repeat(str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/" / "agg_only" /"{ndim}.RDS.benchmark"), 3)
