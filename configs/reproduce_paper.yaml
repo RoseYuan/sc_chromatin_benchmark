@@ -55,6 +55,8 @@ METHODS:
 # Python methods
  SnapATAC2:
    R: false
+   feature_type:
+    - default
    distance:
     - jaccard
     - cosine
