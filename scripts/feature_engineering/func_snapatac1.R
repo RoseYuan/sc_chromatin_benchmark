@@ -123,7 +123,7 @@ preprocessingSnapATAC1 <- function(fragfiles, genome, genome_sizefile, binsize, 
             bash_command <- paste0('bash scripts/feature_engineering/snapatac1_preprocessing.sh '
             , fragfile, ' ', genome, ' ', genome_sizefile, ' ', binsize, ' ', data_dir)
         }else{
-            bash_command <- paste0('conda run --no-capture-output -n ', py_env, 'bash scripts/feature_engineering/snapatac1_preprocessing.sh '
+            bash_command <- paste0('conda run --no-capture-output -n ', py_env, ' bash scripts/feature_engineering/snapatac1_preprocessing.sh '
             , fragfile, ' ', genome, ' ', genome_sizefile, ' ', binsize, ' ', data_dir)
         }
 
