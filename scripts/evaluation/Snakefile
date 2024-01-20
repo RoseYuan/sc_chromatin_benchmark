@@ -17,7 +17,8 @@ rule evaluation_clustering_run:
         clustering resolution: {wildcards.resolution}
         """
     params:
-        cmd     = "Rscript",
+        # cmd     = "Rscript",
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript"
     benchmark:
         str(cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/seed{seed}/r{resolution}_evaluation.benchmark")
     shell:
@@ -41,7 +42,8 @@ rule evaluation_latent_run:
         ndim: {wildcards.ndim}
         """
     params:
-        cmd     = "Rscript",
+        #cmd     = "Rscript",
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript"
     benchmark:
         str(cfg.ROOT / "{scenario}/evaluation/{method}/{feature_type}/{tile_size}/{distance}/{ndim}/latent_space_evaluation.benchmark")
     shell:
