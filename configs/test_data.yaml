@@ -1,4 +1,5 @@
 ROOT: /home/outputs # edit it
+r_env : base # the name of a conda environment that do not have r-base installed. This wil call the system level installation of R. We do not recommand using and managing R packages in conda environment.
 py_env : scATAC-benchmark
 reticulate_py: NA # edit it
 MACS2_PATH: <path-to-conda>/envs/scATAC-benchmark/bin/macs2 # edit it

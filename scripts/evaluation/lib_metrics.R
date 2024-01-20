@@ -410,7 +410,7 @@ eveness <- function(clusterings, a=1, b=0){
 evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embedding", dist_metric="Euclidean", metrics=NULL){
   embed <- Embeddings(Reductions(sobj, embedding_name))
   if (is.null(metrics)){
-      metrics <- c("Silhouette_label", "cLISI_label", "log_geary_c_knn", "avg_pwc_snn") 
+      metrics <- c("Silhouette_label", "FNS", "cLISI_label", "log_geary_c_knn", "avg_pwc_snn") 
   }
   df_metric <- data.frame(matrix(ncol = 2, nrow = length(metrics)))
   colnames(df_metric) <- c("metric", "value")
@@ -424,7 +424,17 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   title <- paste0("Silhouette, ", "true labels, ", dist_metric, "distance")
   re2 <- silhouette_result(dist.matrix, true_labels, title=title)
   df_metric[metric, "value"] <- re2$avg
-
+  
+  # calculating FNS
+  metric <- "FNS"
+  df_sil <- data.frame(re2$sil)[, c("cluster", "sil_width")]
+  df_sil$cell_type <- unlist(lapply(df_sil$cluster, function(x){levels(factor(true_labels))[x]}))
+  df_sil <- df_sil[order(df_sil[, "cluster"], -df_sil$sil_width), ]
+  df_sil$negative_sil <- df_sil$silwidth < 0
+  df_sil_neg <- df_sil %>% group_by(cell_type) %>% summarise(negative_count = sum(negative_sil), count=n())
+  df_sil_neg$negative_fraction <- df_sil_neg$negative_count/df_sil_neg$count
+  df_metric[metric, "value"] <- mean(df_sil_neg$negative_fraction)
+    
   # calculating LISI score
   metric <- "cLISI_label"
   title <- paste0("cLISI, ", "true labels")
@@ -447,7 +457,7 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   # df_metric["avg_pwc_umap", "value"] <- res_cs[["avg_umap"]]
 
   print(df_metric)
-  return(list(metrics=df_metric, sil=re2, lisi=re4, pwc=res_cs))
+  return(list(metrics=df_metric, sil=re2, fns=df_sil_neg, lisi=re4, pwc=res_cs))
 }
 
 

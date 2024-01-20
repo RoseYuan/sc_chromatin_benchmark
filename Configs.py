@@ -2,7 +2,7 @@ from pathlib import Path
 import snakemake.io
 from collections import defaultdict
 import itertools
-
+import pandas as pd
 
 class ParsedConfig:
     FEATURE_TYPES = ["all_cell_peaks", "by_cluster_peaks", "tiles", "peaks", "default"]
@@ -15,11 +15,12 @@ class ParsedConfig:
         self.DATA_SCENARIOS = config["DATA_SCENARIOS"]
         self.FEATURE_SELECTION = config["FEATURE_SELECTION"]
         self.METHODS = config["METHODS"]
-        self.GRAPH_CONSTRUCTION = config["GRAPH_CONSTRUCTION"]
+        # self.GRAPH_CONSTRUCTION = config["GRAPH_CONSTRUCTION"]
         self.r_env = config["r_env"]
         self.py_env = config["py_env"]
         self.MACS2_PATH = config["MACS2_PATH"]
         self.reticulate_py = config["reticulate_py"]
+        self.wildcard_filter_table = config["wildcard_filter_table"]
 
 
     def get_all_feature_selections(self):
@@ -110,7 +111,7 @@ class ParsedConfig:
             if self.get_from_method(method, "R")
         ]
 
-    def get_all_wildcards(self, methods=None, feature_types=False): 
+    def get_all_wildcards(self, methods=None, feature_types=False, select=True): 
         """
         TODO: include method subsetting
         Collect all wildcards for wildcard-dependent rule
@@ -221,6 +222,10 @@ class ParsedConfig:
                     wildcards["scenario"].extend(scenario)
 
         # print(wildcards)
+        if select:
+            if self.wildcard_filter_table:
+                table = pd.read_csv(self.wildcard_filter_table, delimiter='\t')
+                wildcards = self.select_wildcards(wildcards=wildcards, table=table)
         return comb_func, wildcards
 
 
@@ -260,3 +265,12 @@ class ParsedConfig:
                 
             return cmd
         return ""
+
+    def select_wildcards(self, wildcards, table): 
+        """
+        Subsetting wildcard lists according to a table. e.g. can be used to select method specific seed and resolution used for each dataset.
+        """
+        df_wildcards = pd.DataFrame(wildcards)
+        df_wildcards = df_wildcards.merge(table, on=["resolution", "seed", "scenario", "method", "feature_type", "distance"], how='inner')
+        wildcards = defaultdict(list)
+        return df_wildcards.to_dict('list', into=wildcards)

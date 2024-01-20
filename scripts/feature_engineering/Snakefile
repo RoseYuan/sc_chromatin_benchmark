@@ -15,6 +15,7 @@ rule feature_engineering_run_r:
         feature type: {wildcards.feature_type}
         dataset: {wildcards.scenario}
         command: {params.cmd}
+        nfeatures: {params.nfeatures}
         ndim: {wildcards.ndim}
         """
     params:
@@ -24,13 +25,14 @@ rule feature_engineering_run_r:
         cutoff  = lambda w: cfg.get_feature_selection(key="cutoff"),
         nfeatures = lambda w: cfg.get_feature_selection(key="nfeatures"),
         genome  = lambda w: cfg.get_from_scenario(w.scenario, key="genome"),
-        # cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
-        cmd     = "Rscript",
-        py_env  = cfg.py_env
+        cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+        # cmd     = "Rscript",
+        py_env  = cfg.py_env,
     benchmark:
         str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.RDS.benchmark")
     shell:
         """
+        echo {params.cmd}
         {params.cmd} scripts/feature_engineering/runMethods.R -i {input.adata} \
             -o {output.rds} -f {output.mtx} \
             --method {wildcards.method} \
@@ -61,6 +63,7 @@ rule feature_engineering_run_r:
 #         cutoff  = lambda w: cfg.get_feature_selection(key="cutoff"),
 #         genome  = lambda w: cfg.get_from_scenario(w.scenario, key="genome"),
 #         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
+#         # cmd     = "Rscript",
 #         # cmd     = f"conda activate {cfg.r_env}",
 #     benchmark:
 #         # repeat(str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/" / "agg_only" /"{ndim}.RDS.benchmark"), 3)
@@ -95,11 +98,13 @@ rule feature_engineering_run_python:
         dataset: {wildcards.scenario}
         command: {params.cmd}
         ndim: {wildcards.ndim}
+        nfeatures: {params.nfeatures}
         """
     params:
         # peak = cfg.get_peak_option_for_feature_engineering,
         # cutoff = lambda w: cfg.get_feature_selection(key="cutoff"),
         genome = lambda w: cfg.get_from_scenario(w.scenario,key="genome"),
+        nfeatures = lambda w: cfg.get_feature_selection(key="nfeatures"),
         cmd = f"conda run --no-capture-output -n {cfg.py_env} python",
         # cmd     = f"conda activate {cfg.r_env}",
 
@@ -112,20 +117,19 @@ rule feature_engineering_run_python:
 	      --method {wildcards.method} \
             --feature_type {wildcards.feature_type} \
             -n {wildcards.ndim} \
-            -g {params.genome}  -d {wildcards.distance} -l {wildcards.tile_size}
+            -g {params.genome}  -d {wildcards.distance} -l {wildcards.tile_size} {params.nfeatures}
         """ #{params.peak} -c {params.cutoff}
 
 
 int_func, r_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_R_methods())
-# int_func_agg, r_wildcards_agg = cfg.get_all_wildcards(methods=["aggregation"])
+int_func, py_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_python_methods())
 
 rule engineered_R:
     input: 
         a = expand(rules.feature_engineering_run_r.output, int_func, **r_wildcards)
-        # b = expand(rules.feature_engineering_agg_signac_cluster.output, int_func_agg, **r_wildcards_agg)
     message: "R feature engineering methods"
 
-int_func, py_wildcards = cfg.get_all_wildcards(methods=cfg.get_all_python_methods())
+
 rule engineered_python:
     input: expand(rules.feature_engineering_run_python.output, int_func, **py_wildcards)
     message: "Python feature engineering methods"
