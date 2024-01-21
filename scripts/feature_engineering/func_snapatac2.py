@@ -11,9 +11,13 @@ def run_snapatac2(fragfiles, output_file, tile_size, genome, distance='jaccard',
     for i, fragfile in enumerate(fragfile_list):
         name = "CellinFile" + str(i+1)
         tmp_file = dirname + name + ".h5ad"
+        chrom_size_database = {"hg19": snap.genome.hg19,
+                               "hg38": snap.genome.hg38,
+                               "mm10": snap.genome.mm10}
+        chrom_size = chrom_size_database[genome]
         data = snap.pp.import_data(
             fragfile,
-            genome=snap.genome.hg38,
+            genome=chrom_size,
             sorted_by_barcode=False
         )
         # Add tile matrix, select features
