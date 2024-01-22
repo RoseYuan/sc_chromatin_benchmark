@@ -428,9 +428,10 @@ evaluation_latent <- function(sobj, true_labels, embedding_name="learned_embeddi
   # calculating FNS
   metric <- "FNS"
   df_sil <- data.frame(re2$sil)[, c("cluster", "sil_width")]
+  saveRDS(list(sil=df_sil, true_labels=true_labels), file="~/public/SiyuanLuo/projects/rebuttal/number_of_features/df_sil.RDS")
   df_sil$cell_type <- unlist(lapply(df_sil$cluster, function(x){levels(factor(true_labels))[x]}))
   df_sil <- df_sil[order(df_sil[, "cluster"], -df_sil$sil_width), ]
-  df_sil$negative_sil <- df_sil$silwidth < 0
+  df_sil$negative_sil <- df_sil$sil_width < 0
   df_sil_neg <- df_sil %>% group_by(cell_type) %>% summarise(negative_count = sum(negative_sil), count=n())
   df_sil_neg$negative_fraction <- df_sil_neg$negative_count/df_sil_neg$count
   df_metric[metric, "value"] <- mean(df_sil_neg$negative_fraction)

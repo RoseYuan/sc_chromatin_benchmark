@@ -123,7 +123,7 @@ preprocessingSnapATAC1 <- function(fragfiles, genome, genome_sizefile, binsize, 
             bash_command <- paste0('bash scripts/feature_engineering/snapatac1_preprocessing.sh '
             , fragfile, ' ', genome, ' ', genome_sizefile, ' ', binsize, ' ', data_dir)
         }else{
-            bash_command <- paste0('conda run --no-capture-output -n ', py_env, 'bash scripts/feature_engineering/snapatac1_preprocessing.sh '
+            bash_command <- paste0('conda run --no-capture-output -n ', py_env, ' bash scripts/feature_engineering/snapatac1_preprocessing.sh '
             , fragfile, ' ', genome, ' ', genome_sizefile, ' ', binsize, ' ', data_dir)
         }
 
@@ -181,15 +181,20 @@ addRobustBinMatrix <- function(x.sp, binsize, black_list, th_outlier=0.001, th_r
         col="lightblue", 
         xlim=c(0, 5)
     )
-    message(paste0("Number of features for SnapATAC: ", nfeatures, ", using threshold: ", th_rareness, "."))
     
+
+    
+    bin.cutoff1 = quantile(bin.cov[bin.cov > 0], 1-th_rareness)
+    idy = which(bin.cov <= bin.cutoff1 & bin.cov > 0)
+
     if(!is.null(nfeatures)){
-        th_rareness <- 1 - nfeatures/length(bin.cov[bin.cov > 0])
+        th_access <- 1 - nfeatures/length(idy)
+        message(paste0("Number of features for SnapATAC: ", nfeatures, ", using threshold: ", th_access, "."))
     }
-    
-    bin.cutoff = quantile(bin.cov[bin.cov > 0], 1-th_rareness)
-    idy = which(bin.cov <= bin.cutoff & bin.cov > 0)
+    bin.cutoff2 = quantile(bin.cov[idy], th_access)
+    idy = which(bin.cov[idy] >= bin.cutoff2)
     x.sp = x.sp[, idy, mat="bmat"]
+
     return(x.sp)
 }
 

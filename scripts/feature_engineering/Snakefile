@@ -27,18 +27,17 @@ rule feature_engineering_run_r:
         genome  = lambda w: cfg.get_from_scenario(w.scenario, key="genome"),
         cmd     = f"conda run --no-capture-output -n {cfg.r_env} Rscript",
         # cmd     = "Rscript",
-        py_env  = cfg.py_env,
+        py_env  = cfg.py_env
     benchmark:
         str(cfg.ROOT / "{scenario}/feature_engineering/R/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.RDS.benchmark")
     shell:
         """
-        echo {params.cmd}
         {params.cmd} scripts/feature_engineering/runMethods.R -i {input.adata} \
             -o {output.rds} -f {output.mtx} \
             --method {wildcards.method} \
             --feature_type {wildcards.feature_type} \
             -c {params.cutoff} -n {wildcards.ndim} \
-            -g {params.genome} {params.peak} -d {wildcards.distance} -l {wildcards.tile_size} \
+            -g {params.genome} {params.peak} -l {wildcards.tile_size} \
             -s {params.py_env} {params.archr} {params.aggregation} {params.nfeatures}
         """
 
