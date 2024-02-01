@@ -107,7 +107,7 @@ rule feature_engineering_run_python:
         str(cfg.ROOT / "{scenario}/feature_engineering/python/{method}/{feature_type}/{tile_size}/{distance}/{ndim}.h5ad.benchmark")
     shell:
         """
-        {params.} scripts/feature_engineering/runMethods.py \
+        {params.cmd} scripts/feature_engineering/runMethods.py \
           -i {input.adata} -o {output.data} -f {output.mtx} \
 	      --method {wildcards.method} \
             --feature_type {wildcards.feature_type} \
