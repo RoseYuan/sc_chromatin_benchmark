@@ -1,6 +1,7 @@
 ROOT: /home/siluo/public/SiyuanLuo/projects/benchmark/outputs
 py_env : scATAC-benchmark
 reticulate_py: NA
+r_env: base
 MACS2_PATH: /home/siluo/softwares/mambaforge-pypy3/envs/scATAC-benchmark/bin/macs2
 
 FEATURE_SELECTION:
