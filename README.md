@@ -141,8 +141,7 @@ snakemake --configfile configs/test_data.yaml --cores 2
 ## Resources<a name="Resources"></a>
 ### Datasets<a name="Datasets"></a>
 - The data used in the study is deposited [here](https://zenodo.org/record/8212920) on Zenodo.
-### Result files<a name="results"></a>
-- All the intermediate results, including xxx is deposited on xxx. # TODO
+
 ### Code and files for reproducibility<a name="reproducibility"></a>
 - The code and files to reproduce the analysis and visualization in our manuscript is available at the repository: [benchmark_paper](https://github.com/RoseYuan/benchmark_paper/tree/master).
 
