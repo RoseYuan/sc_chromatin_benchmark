@@ -145,5 +145,22 @@ snakemake --configfile configs/test_data.yaml --cores 2
 ### Code and files for reproducibility<a name="reproducibility"></a>
 - The code and files to reproduce the analysis and visualization in our manuscript is available at the repository: [benchmark_paper](https://github.com/RoseYuan/benchmark_paper/tree/master).
 
-## Publication<a name="publication"></a>
+## Citation<a name="Citation"></a>
+If you use this workflow or find it useful, please cite:
+
 Luo, S., Germain, PL., Robinson, M.D. et al. Benchmarking computational methods for single-cell chromatin data analysis. Genome Biol 25, 225 (2024). https://doi.org/10.1186/s13059-024-03356-x
+
+### BibTex
+
+```bibtex
+@article{Luo2024Benchmark,
+  title   = {Benchmarking computational methods for single-cell chromatin data analysis},
+  author  = {Luo, Siyuan and Germain, Pierre-Luc and Robinson, Mark D. and von Meyenn, Ferdinand},
+  journal = {Genome Biology},
+  volume  = {25},
+  pages   = {225},
+  year    = {2024},
+  doi     = {10.1186/s13059-024-03356-x}
+}
+```
+
